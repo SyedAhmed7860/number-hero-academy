@@ -18,7 +18,7 @@
         body {
             font-family: 'Comic Sans MS', 'Chalkboard SE', 'OpenDyslexic', sans-serif;
             background-color: var(--bg);
-            touch-action: pan-y; /* Prevent scrolling when interacting with elements */
+            touch-action: pan-y;
             overflow: hidden;
             user-select: none;
             -webkit-user-select: none;
@@ -50,7 +50,6 @@
         .anim-pulse { animation: pulse-glow 2s infinite; }
         .timer-warning { animation: pulse-red 0.5s infinite; font-weight: 900; }
         
-        /* Interactive Buttons */
         .btn {
             transition: all 0.1s ease;
             cursor: pointer;
@@ -67,16 +66,13 @@
             box-shadow: none !important;
         }
         
-        /* Drawing Canvas & Drag Elements */
         #drawing-board { touch-action: none; z-index: 10; border-radius: 1.5rem; }
         .ghost-number { position: absolute; font-size: 140px; font-weight: bold; color: #e2e8f0; z-index: 0; pointer-events: none; }
         .draggable { touch-action: none; z-index: 10; cursor: pointer; }
         .drop-zone { border: 3px dashed #94a3b8; }
         
-        /* Modals & Overlays */
         .overlay-bg { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
         
-        /* Custom scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px;}
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px;}
@@ -107,7 +103,6 @@
                 PLAY LEVEL 1 🚀
             </button>
 
-            <!-- NAYA FEATURE: Time Attack Challenge -->
             <button onclick="App.startTimeAttack()" class="btn w-full bg-red-500 text-white text-2xl font-bold py-4 rounded-3xl flex justify-center items-center">
                 ⏱️ TIME ATTACK
             </button>
@@ -129,33 +124,22 @@
         </div>
     </div>
 
-    <!-- Screen: Study Room (Learn Mode) -->
+    <!-- Screen: Study Room -->
     <div id="screen-study" class="screen max-w-md mx-auto relative bg-emerald-50 p-4">
         <div class="flex justify-between items-center mb-2 bg-white p-3 rounded-2xl shadow-sm">
             <button onclick="App.showScreen('screen-home')" class="text-blue-500 font-bold text-xl px-4 py-2 bg-blue-50 rounded-xl">⬅ Back</button>
             <h2 class="text-2xl font-bold text-emerald-800">Study Room 📚</h2>
-            <div class="w-16"></div> <!-- Spacer -->
+            <div class="w-16"></div>
         </div>
 
         <div class="flex-1 flex flex-col items-center justify-start bg-white p-4 rounded-3xl shadow-inner border-2 border-emerald-100 overflow-y-auto">
             <p class="text-slate-500 font-bold mb-2 text-center text-sm">Type a number to see its blocks!</p>
             
-            <div id="study-display" class="text-4xl font-black text-slate-800 bg-emerald-50 w-full text-center py-4 rounded-2xl shadow-inner tracking-widest border-2 border-emerald-200 flex items-center justify-center overflow-hidden px-2 mb-2">
-                0
-            </div>
-            
-            <div id="study-words" class="text-lg font-bold text-emerald-700 text-center mb-1 px-2 min-h-[40px] flex items-center justify-center leading-tight">
-                Zero
-            </div>
+            <div id="study-display" class="text-4xl font-black text-slate-800 bg-emerald-50 w-full text-center py-4 rounded-2xl shadow-inner tracking-widest border-2 border-emerald-200 flex items-center justify-center overflow-hidden px-2 mb-2">0</div>
+            <div id="study-words" class="text-lg font-bold text-emerald-700 text-center mb-1 px-2 min-h-[40px] flex items-center justify-center leading-tight">Zero</div>
+            <div id="study-expanded" class="text-md font-bold text-orange-500 text-center mb-2 px-2 flex items-center justify-center break-words w-full">0</div>
 
-            <!-- Place Value Breakdown -->
-            <div id="study-expanded" class="text-md font-bold text-orange-500 text-center mb-2 px-2 flex items-center justify-center break-words w-full">
-                0
-            </div>
-
-            <!-- NAYA FEATURE: Visual Blocks (Base-10) -->
             <div id="study-visuals" class="flex flex-col items-center justify-center w-full min-h-[60px] bg-slate-50 rounded-xl p-2 mb-4 border border-slate-200">
-                <!-- Blocks injected here -->
                 <span class="text-slate-400 text-sm">Blocks will appear here</span>
             </div>
             
@@ -186,64 +170,48 @@
             <h2 class="text-2xl font-bold text-blue-800">Level Map</h2>
             <div class="w-16"></div>
         </div>
-
         <div class="flex justify-between items-center mb-4">
             <button onclick="App.changeLevelPage(-1)" id="btn-prev-page" class="btn bg-white text-blue-600 font-bold px-4 py-2 rounded-xl shadow">◀ Prev</button>
             <span class="font-bold text-slate-600">Page <span id="level-page-display">1</span>/30</span>
             <button onclick="App.changeLevelPage(1)" id="btn-next-page" class="btn bg-white text-blue-600 font-bold px-4 py-2 rounded-xl shadow">Next ▶</button>
         </div>
-
         <div class="flex-1 overflow-y-auto bg-white p-4 rounded-3xl shadow-inner border-2 border-blue-100">
-            <div id="levels-grid" class="grid grid-cols-4 gap-3">
-                <!-- Level buttons injected here dynamically -->
-            </div>
+            <div id="levels-grid" class="grid grid-cols-4 gap-3"></div>
         </div>
     </div>
 
     <!-- Screen: Main Game Flow -->
     <div id="screen-game" class="screen max-w-md mx-auto relative bg-blue-50">
-        <!-- Top Bar -->
         <div class="flex justify-between items-center p-4 bg-white shadow-sm z-10">
             <button onclick="App.quitGame()" class="text-red-500 font-bold text-xl bg-red-50 px-3 py-1 rounded-lg">✖ Quit</button>
-            
-            <!-- Standard Progress Bar -->
             <div class="flex space-x-2" id="progress-bar-container"></div>
-            
-            <!-- Time Attack Timer (Hidden naturally) -->
             <div id="timer-container" class="hidden flex items-center bg-slate-100 px-3 py-1 rounded-xl">
                 <span class="text-2xl mr-2">⏱️</span>
                 <span id="time-attack-clock" class="text-xl font-bold text-slate-700">60s</span>
             </div>
-
             <div class="font-bold text-yellow-500 text-xl">⭐ <span id="game-stars">0</span></div>
         </div>
 
-        <!-- Game Container -->
         <div id="game-container" class="flex-1 flex flex-col p-4 relative overflow-hidden justify-center items-center">
             
-            <!-- Mode 1: Write Number (Drawing Canvas for 1-99) -->
             <div id="mode-write" class="w-full hidden flex-col items-center h-full">
                 <div class="text-2xl font-bold mb-2 text-center text-blue-700" id="write-prompt">Write the number!</div>
                 <button onclick="App.speakCurrentPrompt()" class="btn bg-blue-100 p-3 rounded-full mb-4 text-2xl">🔊</button>
-                
                 <div class="relative w-full h-[280px] sm:h-[350px] flex-none flex justify-center items-center bg-white border-4 border-blue-300 rounded-3xl overflow-hidden shadow-inner my-2" id="canvas-container">
                     <div id="write-ghost" class="ghost-number flex items-center justify-center w-full h-full">47</div>
                     <canvas id="drawing-board" class="absolute inset-0 w-full h-full touch-none"></canvas>
                 </div>
-                
                 <div class="flex w-full space-x-4 mt-6">
                     <button onclick="App.clearCanvas()" class="btn flex-1 bg-red-400 text-white font-bold py-4 rounded-2xl text-xl">Clear 🧹</button>
                     <button onclick="App.checkHandwriting()" class="btn flex-1 bg-green-500 text-white font-bold py-4 rounded-2xl text-xl">Done! ✔️</button>
                 </div>
             </div>
 
-            <!-- Mode 2: Type Number (Keypad for 100 - 10,000) -->
             <div id="mode-type" class="w-full hidden flex-col items-center">
                 <div class="text-2xl font-bold mb-2 text-center text-blue-700">Type the number!</div>
                 <button onclick="App.speakCurrentPrompt()" class="btn bg-blue-100 p-3 rounded-full mb-2 text-2xl">🔊</button>
                 <div id="type-words" class="text-xl font-bold text-slate-600 text-center mb-4 px-2 h-16 flex items-center justify-center leading-tight">Ten Thousand</div>
                 <div id="type-display" class="text-4xl font-black text-slate-800 mb-6 bg-white w-full text-center py-4 rounded-xl shadow-inner tracking-widest border-2 border-slate-200 min-h-[70px] flex items-center justify-center overflow-hidden px-2"></div>
-                
                 <div class="grid grid-cols-3 gap-3 w-full max-w-[300px]">
                     <button onclick="App.typeDigit(1)" class="btn bg-white text-3xl font-bold py-3 rounded-xl shadow">1</button>
                     <button onclick="App.typeDigit(2)" class="btn bg-white text-3xl font-bold py-3 rounded-xl shadow">2</button>
@@ -260,7 +228,6 @@
                 </div>
             </div>
 
-            <!-- Mode 3: Multiple Choice -->
             <div id="mode-choice" class="w-full hidden flex-col items-center">
                 <div class="text-2xl font-bold mb-6 text-center text-blue-700" id="choice-prompt">What number is this?</div>
                 <button onclick="App.speakCurrentPrompt()" class="btn bg-blue-100 p-3 rounded-full mb-6 text-2xl">🔊</button>
@@ -268,38 +235,32 @@
                 <div class="grid grid-cols-2 gap-4 w-full" id="choice-options"></div>
             </div>
 
-            <!-- Mode 4: Missing Number -->
             <div id="mode-missing" class="w-full hidden flex-col items-center">
                 <div class="text-2xl font-bold mb-10 text-center text-purple-700">Find the missing number!</div>
-                <div class="flex justify-center items-center space-x-1 w-full mb-12 text-3xl font-bold" id="missing-sequence"></div>
+                <div class="flex justify-center items-center gap-1 w-full mb-12 text-2xl sm:text-3xl font-bold flex-wrap" id="missing-sequence"></div>
                 <div class="grid grid-cols-3 gap-3 w-full" id="missing-options"></div>
             </div>
 
-            <!-- Mode 5: Ordering -->
             <div id="mode-order" class="w-full hidden flex-col items-center">
                 <div class="text-2xl font-bold mb-6 text-center text-orange-600">Tap to put in order!</div>
-                <div class="flex justify-around w-full mb-8 h-24 items-center bg-white rounded-2xl shadow-inner drop-zone p-2 space-x-2" id="order-dropzone"></div>
-                <div class="flex justify-around w-full h-24 items-center space-x-2" id="order-source"></div>
+                <div class="flex justify-around w-full mb-8 h-24 items-center bg-white rounded-2xl shadow-inner drop-zone p-2 space-x-2 flex-wrap gap-y-2" id="order-dropzone"></div>
+                <div class="flex justify-around w-full h-24 items-center space-x-2 flex-wrap gap-y-2" id="order-source"></div>
                 <button onclick="App.checkOrder()" class="btn w-full bg-green-500 text-white font-bold py-4 rounded-2xl text-xl mt-8">Check! ✔️</button>
             </div>
 
-            <!-- Mode 6: Counting -->
             <div id="mode-count" class="w-full hidden flex-col items-center">
                 <div class="text-2xl font-bold mb-6 text-center text-green-700">How many are there?</div>
                 <div class="flex flex-wrap justify-center gap-4 mb-10 text-5xl bg-white p-6 rounded-3xl shadow-inner min-h-[200px]" id="count-items"></div>
                 <div class="grid grid-cols-3 gap-4 w-full" id="count-options"></div>
             </div>
 
-            <!-- NAYA FEATURE: Mode 7: Compare (Bada/Chhota) -->
             <div id="mode-compare" class="w-full hidden flex-col items-center">
                 <div class="text-2xl font-bold mb-8 text-center text-indigo-700">Which is bigger?</div>
-                
                 <div class="flex justify-between items-center w-full mb-12 bg-white rounded-3xl shadow-md p-6 border-2 border-indigo-100">
                     <div id="compare-num1" class="text-4xl sm:text-5xl font-black text-slate-800">45</div>
                     <div class="text-5xl text-indigo-300 font-black px-2">?</div>
                     <div id="compare-num2" class="text-4xl sm:text-5xl font-black text-slate-800">54</div>
                 </div>
-
                 <div class="grid grid-cols-3 gap-4 w-full">
                     <button onclick="App.checkCompare('<')" class="btn bg-indigo-100 text-indigo-700 font-bold text-5xl py-6 rounded-2xl border-4 border-indigo-200 hover:bg-indigo-200">&lt;</button>
                     <button onclick="App.checkCompare('=')" class="btn bg-gray-100 text-gray-700 font-bold text-5xl py-6 rounded-2xl border-4 border-gray-200 hover:bg-gray-200">=</button>
@@ -307,17 +268,12 @@
                 </div>
             </div>
 
-            <!-- NAYA FEATURE: Mode 8: Even / Odd (Sam / Visham) -->
             <div id="mode-evenodd" class="w-full hidden flex-col items-center">
                 <div class="text-2xl font-bold mb-6 text-center text-pink-600">Even or Odd?</div>
-                
-                <div id="evenodd-target" class="text-7xl font-black text-slate-800 mb-12 bg-white w-full text-center py-10 rounded-3xl shadow-md border-4 border-pink-100">
-                    84
-                </div>
-
+                <div id="evenodd-target" class="text-7xl font-black text-slate-800 mb-12 bg-white w-full text-center py-10 rounded-3xl shadow-md border-4 border-pink-100">84</div>
                 <div class="flex space-x-4 w-full">
-                    <button onclick="App.checkEvenOdd('even')" class="btn flex-1 bg-cyan-400 text-white font-bold text-3xl py-8 rounded-3xl border-b-4 border-cyan-600 shadow-lg">EVEN<br><span class="text-sm font-normal text-cyan-100">(Ends in 0,2,4,6,8)</span></button>
-                    <button onclick="App.checkEvenOdd('odd')" class="btn flex-1 bg-pink-500 text-white font-bold text-3xl py-8 rounded-3xl border-b-4 border-pink-700 shadow-lg">ODD<br><span class="text-sm font-normal text-pink-200">(Ends in 1,3,5,7,9)</span></button>
+                    <button onclick="App.checkEvenOdd('even')" class="btn flex-1 bg-cyan-400 text-white font-bold text-3xl py-8 rounded-3xl border-b-4 border-cyan-600 shadow-lg">EVEN<br><span class="text-sm font-normal text-cyan-100">(0,2,4,6,8)</span></button>
+                    <button onclick="App.checkEvenOdd('odd')" class="btn flex-1 bg-pink-500 text-white font-bold text-3xl py-8 rounded-3xl border-b-4 border-pink-700 shadow-lg">ODD<br><span class="text-sm font-normal text-pink-200">(1,3,5,7,9)</span></button>
                 </div>
             </div>
 
@@ -356,27 +312,32 @@
             <h2 class="text-2xl font-bold text-slate-800">Mata-Pita Dashboard</h2>
             <button onclick="App.showScreen('screen-home')" class="text-blue-500 font-bold bg-blue-100 px-4 py-2 rounded-xl">Back</button>
         </div>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm mb-4 border-2 border-green-100">
+            <h3 class="font-bold text-lg mb-2 text-green-700">☁️ Data Sync & Backup</h3>
+            <p class="text-xs text-slate-500 mb-3 font-bold">Dusre device par resume karne ke liye yahan se data Export karke wahan Import karein.</p>
+            <div class="flex space-x-2">
+                <button onclick="App.exportData()" class="btn flex-1 bg-green-100 text-green-700 font-bold py-3 rounded-xl text-sm shadow-sm">📤 Export Save Code</button>
+                <button onclick="App.importData()" class="btn flex-1 bg-blue-100 text-blue-700 font-bold py-3 rounded-xl text-sm shadow-sm">📥 Import Save Code</button>
+            </div>
+        </div>
         
         <div class="bg-white p-4 rounded-2xl shadow-sm mb-4 border-2 border-indigo-100">
             <h3 class="font-bold text-lg mb-2 text-indigo-700">📊 Overall Progress</h3>
             <div class="flex justify-between text-sm mb-1"><span>Current Level</span><span id="stat-level" class="font-bold text-purple-600">Level 1 / 3000</span></div>
             <div class="flex justify-between text-sm mb-1"><span>Numbers Mastered</span><span id="stat-mastered" class="font-bold text-green-600">0</span></div>
-            
             <div class="flex justify-between text-sm mb-1 mt-3"><span>Accuracy</span><span id="stat-accuracy" class="font-bold text-blue-600">0%</span></div>
-            <div class="w-full bg-gray-200 rounded-full h-2.5"><div id="bar-accuracy" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div></div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2"><div id="bar-accuracy" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div></div>
+            <div class="flex justify-between text-sm"><span>Grade</span><span id="stat-grade" class="font-bold text-xl">--</span></div>
         </div>
 
-        <!-- Deep Analysis Section -->
         <div class="bg-white p-4 rounded-2xl shadow-sm mb-4 border-2 border-red-100">
             <div class="flex justify-between items-center mb-2">
                 <h3 class="font-bold text-lg text-red-600">🧠 Deep Analysis (Kamzori)</h3>
             </div>
-            <div id="weak-concepts-list" class="text-sm text-slate-600 mb-2 p-3 bg-red-50 rounded-xl border border-red-100 italic">
-                Data collect ho raha hai... (Abhi koi weakness nahi mili)
-            </div>
+            <div id="weak-concepts-list" class="text-sm text-slate-600 mb-2 p-3 bg-red-50 rounded-xl border border-red-100 italic">Data collect ho raha hai...</div>
         </div>
 
-        <!-- Time Attack Analysis Section -->
         <div class="bg-white p-4 rounded-2xl shadow-sm mb-4 border-2 border-yellow-100">
             <h3 class="font-bold text-lg mb-2 text-yellow-600">⏱️ Time Attack Analysis</h3>
             <div class="grid grid-cols-2 gap-2 text-center">
@@ -388,10 +349,6 @@
                     <div class="text-xs text-slate-500 font-bold">High Score</div>
                     <div id="stat-ta-high" class="text-xl font-black text-yellow-700">0</div>
                 </div>
-                <div class="bg-yellow-50 p-2 rounded-xl col-span-2">
-                    <div class="text-xs text-slate-500 font-bold">Average Score (Speed)</div>
-                    <div id="stat-ta-avg" class="text-lg font-black text-yellow-700">0 points/game</div>
-                </div>
             </div>
         </div>
 
@@ -399,10 +356,9 @@
             <div class="flex justify-between items-center mb-4">
                 <h3 class="font-bold text-lg text-slate-700">📋 Har Number Ki Galti</h3>
                 <button onclick="App.generateReport()" class="bg-indigo-100 text-indigo-700 px-3 py-2 rounded-xl text-sm font-bold shadow-sm active:scale-95 transition-transform flex items-center">
-                    <span>📄 Download PDF Report</span>
+                    <span>📄 Save PDF Report</span>
                 </button>
             </div>
-            
             <div class="max-h-60 overflow-y-auto border border-gray-100 rounded-xl">
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-gray-50 sticky top-0 shadow-sm">
@@ -450,6 +406,20 @@
         </div>
     </div>
 
+    <!-- Backup/Restore Modal -->
+    <div id="modal-backup" class="fixed inset-0 hidden items-center justify-center z-50 overlay-bg">
+        <div class="bg-white p-6 rounded-3xl shadow-2xl max-w-sm w-full text-center anim-bounce-in border-4 border-green-200">
+            <h3 id="backup-title" class="text-2xl font-bold text-slate-800 mb-2">Save Code</h3>
+            <p id="backup-desc" class="text-slate-600 mb-4 text-sm font-bold">Ye code copy karke apne doosre device me paste karein:</p>
+            <textarea id="backup-textarea" class="w-full h-32 p-3 border-2 border-slate-200 rounded-xl mb-4 text-xs font-mono break-all"></textarea>
+            <div class="flex space-x-3">
+                <button onclick="App.closeBackupModal()" class="btn flex-1 bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm">Cancel</button>
+                <button id="backup-action-btn" class="btn flex-1 bg-green-500 text-white font-bold py-3 rounded-xl text-sm">Action</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
     <div id="modal-confirm" class="fixed inset-0 hidden items-center justify-center z-50 overlay-bg">
         <div class="bg-white p-6 rounded-3xl shadow-2xl max-w-xs w-full text-center anim-bounce-in border-4 border-red-200">
             <div class="text-5xl mb-4">⚠️</div>
@@ -462,7 +432,7 @@
         </div>
     </div>
 
-    <!-- NAYA FEATURE: Install App Modal -->
+    <!-- Install App Modal -->
     <div id="install-modal" class="fixed inset-0 hidden items-center justify-center z-50 overlay-bg">
         <div class="bg-white p-6 rounded-3xl shadow-2xl max-w-xs w-full text-center anim-bounce-in border-4 border-blue-200">
             <div class="text-5xl mb-4">📱</div>
@@ -475,16 +445,10 @@
         </div>
     </div>
 
-    <!-- Confetti Canvas -->
     <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-40 hidden"></canvas>
 
+    <!-- Core App Logic -->
     <script>
-        /**
-         * NUMBER HERO ACADEMY
-         * Complete Offline App for mastering numbers 1 - 10,000 across 3000 levels.
-         * Now includes: Compare, Even/Odd, Base-10 Blocks, and Time Attack!
-         */
-
         const setupPWA = () => {
             try {
                 const manifest = {
@@ -497,13 +461,34 @@
                 document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestUrl}">`);
 
                 const swCode = `
-                    const CACHE_NAME = 'number-hero-v5';
+                    const CACHE_NAME = 'number-hero-v8';
+                    
                     self.addEventListener('install', event => {
                         event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll([location.href])));
                         self.skipWaiting();
                     });
+                    
+                    // Activate handler to remove old caches ensuring seamless updates on GitHub
+                    self.addEventListener('activate', event => {
+                        event.waitUntil(
+                            caches.keys().then(cacheNames => {
+                                return Promise.all(
+                                    cacheNames.map(cacheName => {
+                                        if (cacheName !== CACHE_NAME) {
+                                            return caches.delete(cacheName);
+                                        }
+                                    })
+                                );
+                            })
+                        );
+                        self.clients.claim();
+                    });
+
+                    // Network First approach so github updates load instantly if online
                     self.addEventListener('fetch', event => {
-                        event.respondWith(caches.match(event.request).then(response => response || fetch(event.request)));
+                        event.respondWith(
+                            fetch(event.request).catch(() => caches.match(event.request))
+                        );
                     });
                 `;
                 const swBlob = new Blob([swCode], { type: 'application/javascript' });
@@ -624,29 +609,22 @@
             currentLevelPage: 0,
             studyValue: "",
             pinValue: "",
-            deferredPrompt: null, // Install prompt ke liye
+            deferredPrompt: null,
             
-            // Drawing state
             canvas: null, ctx: null, isDrawing: false, lastX: 0, lastY: 0,
-
-            // Time Attack state
-            isTimeAttack: false,
-            taTimeLeft: 0,
-            taScore: 0,
-            taInterval: null,
+            isTimeAttack: false, taTimeLeft: 0, taScore: 0, taInterval: null,
 
             async init() {
+                window.App = this; 
                 setupPWA();
                 await this.db.init();
                 this.confetti = new Confetti();
                 await this.loadData();
                 this.setupCanvasListeners();
                 
-                // Install Prompt Handler
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
                     this.deferredPrompt = e;
-                    // App load hone ke 3 second baad Install modal show karega
                     setTimeout(() => {
                         document.getElementById('install-modal').classList.remove('hidden');
                         document.getElementById('install-modal').classList.add('flex');
@@ -664,7 +642,6 @@
                 if (this.deferredPrompt) {
                     this.deferredPrompt.prompt();
                     const { outcome } = await this.deferredPrompt.userChoice;
-                    console.log(`User response to the install prompt: ${outcome}`);
                     this.deferredPrompt = null;
                 }
             },
@@ -694,14 +671,78 @@
                 await this.db.put('user', this.user);
             },
 
+            // --- Manual Backup (Copy/Paste Code for GitHub) ---
+            exportData() {
+                const data = { user: this.user, stats: this.stats };
+                const encoded = btoa(JSON.stringify(data));
+                
+                document.getElementById('backup-title').innerText = "Export Save Code";
+                document.getElementById('backup-desc').innerText = "Ye lamba code copy karein aur apne doosre device me Paste (Import) karein:";
+                
+                const ta = document.getElementById('backup-textarea');
+                ta.value = encoded;
+                ta.readOnly = true;
+                
+                const btn = document.getElementById('backup-action-btn');
+                btn.innerText = "Copy Code";
+                btn.onclick = () => {
+                    ta.select();
+                    document.execCommand('copy');
+                    this.closeBackupModal();
+                    this.showModal("Copied! 📋", "Save code copy ho gaya hai. Ise WhatsApp/Notes me bhej lein.", () => {});
+                };
+                
+                document.getElementById('modal-backup').classList.remove('hidden');
+                document.getElementById('modal-backup').classList.add('flex');
+            },
+
+            importData() {
+                document.getElementById('backup-title').innerText = "Import Save Code";
+                document.getElementById('backup-desc').innerText = "Jo code aapne pehle copy kiya tha, use yahan paste karein:";
+                
+                const ta = document.getElementById('backup-textarea');
+                ta.value = "";
+                ta.readOnly = false;
+                
+                const btn = document.getElementById('backup-action-btn');
+                btn.innerText = "Restore Progress";
+                btn.onclick = async () => {
+                    const code = ta.value.trim();
+                    if(!code) return;
+                    try {
+                        const decoded = JSON.parse(atob(code));
+                        if (decoded.user && decoded.stats) {
+                            this.user = decoded.user;
+                            this.stats = decoded.stats;
+                            await this.db.put('user', this.user);
+                            await this.db.clear('stats');
+                            for (let s of this.stats) await this.db.put('stats', s);
+                            this.updateHomeUI();
+                            this.closeBackupModal();
+                            this.showModal("Restored! 🎉", "Bacchi ki purani progress wapas aa gayi hai!", () => this.showScreen('screen-home'));
+                        }
+                    } catch(e) {
+                        this.closeBackupModal();
+                        this.showModal("Error ⚠️", "Galat code dala hai! Kripya sahi code copy karein.", () => {});
+                    }
+                };
+                
+                document.getElementById('modal-backup').classList.remove('hidden');
+                document.getElementById('modal-backup').classList.add('flex');
+            },
+
+            closeBackupModal() {
+                document.getElementById('modal-backup').classList.add('hidden');
+                document.getElementById('modal-backup').classList.remove('flex');
+            },
+
             async updateNumberStat(num, correct, mode) {
                 let stat = this.stats.find(s => s.number === num);
                 if (!stat) {
                     stat = { number: num, correctCount: 0, wrongCount: 0, stage: 0, nextReview: 0, modeErrors: {} };
                     this.stats.push(stat);
                 }
-                
-                if (!stat.modeErrors) stat.modeErrors = {}; // Fallback for old data
+                if (!stat.modeErrors) stat.modeErrors = {};
 
                 if (correct) {
                     stat.correctCount++;
@@ -709,11 +750,7 @@
                 } else {
                     stat.wrongCount++;
                     stat.stage = Math.max(0, stat.stage - 2); 
-                    
-                    // Kis game mode me galti hui, wo save karo (Kamzori pakadne ke liye)
-                    if(mode) {
-                        stat.modeErrors[mode] = (stat.modeErrors[mode] || 0) + 1;
-                    }
+                    if(mode) stat.modeErrors[mode] = (stat.modeErrors[mode] || 0) + 1;
                 }
                 stat.nextReview = SRS.getNextReviewTime(stat.stage);
                 await this.db.put('stats', stat);
@@ -754,12 +791,10 @@
                     }
                 }
             },
-            
             pinBackspace() {
                 this.pinValue = this.pinValue.slice(0, -1);
                 document.getElementById('pin-display').innerText = '*'.repeat(this.pinValue.length);
             },
-            
             verifyPin() {
                 if(this.pinValue === "1234") {
                     this.showScreen('screen-parent');
@@ -796,7 +831,6 @@
                 document.getElementById('study-display').innerText = num.toLocaleString('en-IN');
                 document.getElementById('study-words').innerText = this.numberToWordsIN(num);
                 
-                // Build Expanded Form
                 if (num === 0) {
                     document.getElementById('study-expanded').innerText = "0";
                     document.getElementById('study-visuals').innerHTML = '<span class="text-slate-400 text-sm">Type a number to see blocks!</span>';
@@ -813,7 +847,6 @@
                     }
                     document.getElementById('study-expanded').innerText = expandedParts.join(" + ");
 
-                    // Build Visual Base-10 Blocks
                     let visualHtml = `<div class="flex flex-wrap justify-center gap-3">`;
                     if(num <= 9999) {
                         const paddedStr = numStr.padStart(4, '0');
@@ -842,16 +875,15 @@
                 speechSynthesis.speak(utterance);
             },
 
+            // --- PROGRESSIVE DIFFICULTY ENGINE FIX ---
             getRangeForLevel(lvl) {
-                let min, max;
-                if (lvl <= 100) { min = 1; max = Math.max(10, lvl); }
-                else if (lvl <= 1000) { min = 100; max = 100 + Math.floor((lvl - 100) * 1); }
-                else if (lvl <= 2000) { min = 1000; max = 1000 + Math.floor((lvl - 1000) * 4); }
-                else { min = 5000; max = 5000 + Math.floor((lvl - 2000) * 5); }
-
-                max = Math.min(10000, max);
-                if (min >= max) min = Math.max(1, max - 50);
-
+                let min = 1, max = 10;
+                if (lvl <= 20) { min = 1; max = 20; }
+                else if (lvl <= 50) { min = 10; max = 100; }
+                else if (lvl <= 200) { min = 50; max = 500; }
+                else if (lvl <= 500) { min = 200; max = 1000; }
+                else if (lvl <= 1000) { min = 500; max = 5000; }
+                else { min = 1000; max = 10000; }
                 return { min, max };
             },
 
@@ -941,7 +973,6 @@
             },
 
             playNextTimeAttackTask() {
-                // Generate numbers suitable for fast play (1-1000)
                 let targetNumber = Math.floor(Math.random() * 1000) + 1;
                 let availableModes = ['choice', 'missing', 'compare', 'evenodd'];
                 let mode = availableModes[Math.floor(Math.random() * availableModes.length)];
@@ -955,14 +986,12 @@
                 this.playSound('success');
                 this.confetti.fire();
                 
-                // Time Attack Analytics Save
                 this.user.taGames += 1;
                 this.user.taTotalScore += this.taScore;
                 if(this.taScore > this.user.taHighScore) {
                     this.user.taHighScore = this.taScore;
                 }
 
-                // Give coins based on score (1 score = 2 coins)
                 let earnedCoins = this.taScore * 2;
                 this.user.coins += earnedCoins;
                 this.saveData();
@@ -973,7 +1002,7 @@
                 });
             },
 
-            // --- NORMAL LEVEL LOGIC ---
+            // --- NORMAL LEVEL LOGIC FIX ---
             startLevel(lvl) {
                 this.isTimeAttack = false;
                 document.getElementById('progress-bar-container').classList.remove('hidden');
@@ -984,10 +1013,12 @@
                 const range = this.getRangeForLevel(lvl);
                 
                 const now = Date.now();
-                let due = this.stats.filter(s => s.nextReview <= now && s.stage < 6 && s.number <= range.max).sort((a,b) => a.nextReview - b.nextReview);
+                // Filter due numbers ONLY in current range to ensure difficulty increases!
+                let due = this.stats.filter(s => s.nextReview <= now && s.stage < 6 && s.number >= range.min && s.number <= range.max).sort((a,b) => a.nextReview - b.nextReview);
                 
                 for(let i=0; i<5; i++) {
-                    if (due.length > 0 && Math.random() > 0.4) {
+                    // Maximum 1 old review question per level so they mostly see new hard numbers
+                    if (i === 0 && due.length > 0) {
                         this.currentLesson.push(due.shift().number);
                     } else {
                         let n = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
@@ -1057,13 +1088,10 @@
                 }
             },
 
-            // --- ALL GAME MODES SETUP ---
-            
-            // Mode 1: Write
+            // --- ALL GAME MODES SETUP (With Freeze Fixes) ---
             setupModeWrite(num) {
                 document.getElementById('write-prompt').innerText = `Write the number!`;
                 document.getElementById('write-ghost').innerText = num;
-                
                 setTimeout(() => {
                     this.canvas = document.getElementById('drawing-board');
                     this.ctx = this.canvas.getContext('2d');
@@ -1075,7 +1103,6 @@
                 }, 50); 
             },
 
-            // Mode 2: Type
             setupModeType(num) {
                 this.currentGame.typedValue = "";
                 document.getElementById('type-words').innerText = this.numberToWordsIN(num);
@@ -1101,21 +1128,23 @@
                 this.handleAnswer(isCorrect);
             },
 
-            // Mode 3: Choice
             setupModeChoice(num) {
                 document.getElementById('choice-target').innerText = num.toLocaleString('en-IN');
                 let opts = [num];
-                while(opts.length < 4) {
+                let safety = 0; // Freeze preventer
+                while(opts.length < 4 && safety < 50) {
+                    safety++;
                     let variation = Math.floor(num * 0.1) || 5;
                     let r = Math.max(1, num + Math.floor(Math.random() * (variation * 2) - variation));
                     if(Math.random() > 0.5) {
                         let s = num.toString();
-                        if(s.length > 1) {
-                            r = parseInt(s.charAt(1) + s.charAt(0) + s.substring(2));
-                        }
+                        if(s.length > 1) { r = parseInt(s.charAt(1) + s.charAt(0) + s.substring(2)); }
                     }
                     if (!opts.includes(r)) opts.push(r);
                 }
+                // Fallback for extreme cases
+                while(opts.length < 4) opts.push(num + opts.length);
+
                 opts.sort(() => Math.random() - 0.5);
                 
                 const container = document.getElementById('choice-options');
@@ -1129,7 +1158,6 @@
                 });
             },
 
-            // Mode 4: Missing Number
             setupModeMissing(num) {
                 let step = 1;
                 if (this.user.level > 100 && Math.random() > 0.5) step = 10;
@@ -1137,10 +1165,7 @@
                 if (this.user.level > 1500 && Math.random() > 0.7) step = 1000;
 
                 let start = num - (2 * step);
-                if (start < 1) {
-                    let remainder = (num - 1) % step;
-                    start = 1 + remainder; 
-                }
+                if (start < 1) { let remainder = (num - 1) % step; start = 1 + remainder; }
                 
                 let seq = [start, start + step, start + 2*step, start + 3*step, start + 4*step];
                 let hiddenIdx = seq.indexOf(num);
@@ -1148,10 +1173,7 @@
                 if (hiddenIdx === -1) { 
                     hiddenIdx = 2; 
                     seq = [num - 2*step, num - step, num, num + step, num + 2*step];
-                    if(seq[0] < 1) {
-                        seq = [num, num + step, num + 2*step, num + 3*step, num + 4*step];
-                        hiddenIdx = 0;
-                    }
+                    if(seq[0] < 1) { seq = [num, num + step, num + 2*step, num + 3*step, num + 4*step]; hiddenIdx = 0; }
                 }
                 
                 const seqContainer = document.getElementById('missing-sequence');
@@ -1169,10 +1191,14 @@
                 });
 
                 let opts = [num];
-                while(opts.length < 3) {
+                let safety = 0; // Freeze preventer
+                while(opts.length < 3 && safety < 50) {
+                    safety++;
                     let r = Math.max(1, num + (Math.floor(Math.random() * 5 - 2) * step));
                     if (!opts.includes(r) && r > 0) opts.push(r);
                 }
+                while(opts.length < 3) opts.push(num + opts.length * step);
+
                 opts.sort(() => Math.random() - 0.5);
                 
                 const optsContainer = document.getElementById('missing-options');
@@ -1186,13 +1212,16 @@
                 });
             },
 
-            // Mode 5: Ordering
             setupModeOrder(num) {
                 let nums = [num];
-                while(nums.length < 4) {
+                let safety = 0;
+                while(nums.length < 4 && safety < 50) {
+                    safety++;
                     let r = Math.max(1, num + Math.floor(Math.random() * 10 - 5));
                     if (!nums.includes(r) && r > 0) nums.push(r);
                 }
+                while(nums.length < 4) nums.push(num + nums.length);
+
                 this.currentGame.correctOrder = [...nums].sort((a,b)=>a-b);
                 nums.sort(() => Math.random() - 0.5);
 
@@ -1261,14 +1290,15 @@
                 this.handleAnswer(isCorrect);
             },
 
-            // Mode 6: Counting
             setupModeCount(num) {
                 const emojis = ['🍎', '🐶', '⭐', '🚗', '🎈', '🦋'];
                 const emoji = emojis[Math.floor(Math.random() * emojis.length)];
                 
                 const container = document.getElementById('count-items');
                 container.innerHTML = '';
-                for(let i=0; i<num; i++) {
+                // Safety restriction to avoid freezing
+                let displayNum = Math.min(num, 30); 
+                for(let i=0; i<displayNum; i++) {
                     let s = document.createElement('span');
                     s.innerText = emoji;
                     s.className = "anim-bounce-in";
@@ -1276,11 +1306,15 @@
                     container.appendChild(s);
                 }
 
-                let opts = [num];
-                while(opts.length < 3) {
-                    let r = Math.max(1, num + Math.floor(Math.random() * 5 - 2));
+                let opts = [displayNum];
+                let safety = 0;
+                while(opts.length < 3 && safety < 50) {
+                    safety++;
+                    let r = Math.max(1, displayNum + Math.floor(Math.random() * 5 - 2));
                     if (!opts.includes(r) && r > 0) opts.push(r);
                 }
+                while(opts.length < 3) opts.push(displayNum + opts.length);
+
                 opts.sort(() => Math.random() - 0.5);
                 
                 const optsContainer = document.getElementById('count-options');
@@ -1289,33 +1323,27 @@
                     let btn = document.createElement('button');
                     btn.className = "btn bg-green-100 text-green-700 font-bold text-3xl py-6 rounded-2xl shadow-sm border-2 border-green-200";
                     btn.innerText = o;
-                    btn.onclick = () => this.handleAnswer(o === num);
+                    btn.onclick = () => this.handleAnswer(o === displayNum);
                     optsContainer.appendChild(btn);
                 });
             },
 
-            // Mode 7: Compare Mode
             setupModeCompare(num) {
                 let num2;
-                let isEq = Math.random() > 0.85; // 15% chance to be equal
+                let isEq = Math.random() > 0.85; 
+                let safety = 0; // Freeze preventer
                 
-                if (isEq) {
-                    num2 = num;
-                } else {
+                if (isEq) { num2 = num; } else {
                     do {
+                        safety++;
                         let variation = Math.floor(num * 0.2) || 5;
                         num2 = num + Math.floor(Math.random() * variation * 2) - variation;
-                    } while(num2 < 1 || num2 === num);
+                    } while((num2 < 1 || num2 === num) && safety < 50);
+                    if(safety >= 50) num2 = num + 1; // Fallback
                 }
 
-                // Randomize position
-                if(Math.random() > 0.5) {
-                    this.currentGame.cNum1 = num;
-                    this.currentGame.cNum2 = num2;
-                } else {
-                    this.currentGame.cNum1 = num2;
-                    this.currentGame.cNum2 = num;
-                }
+                if(Math.random() > 0.5) { this.currentGame.cNum1 = num; this.currentGame.cNum2 = num2; } 
+                else { this.currentGame.cNum1 = num2; this.currentGame.cNum2 = num; }
 
                 document.getElementById('compare-num1').innerText = this.currentGame.cNum1.toLocaleString('en-IN');
                 document.getElementById('compare-num2').innerText = this.currentGame.cNum2.toLocaleString('en-IN');
@@ -1327,11 +1355,9 @@
                 let correctAns = '=';
                 if(n1 > n2) correctAns = '>';
                 if(n1 < n2) correctAns = '<';
-                
                 this.handleAnswer(ans === correctAns);
             },
 
-            // Mode 8: Even / Odd
             setupModeEvenOdd(num) {
                 document.getElementById('evenodd-target').innerText = num.toLocaleString('en-IN');
             },
@@ -1341,24 +1367,21 @@
                 this.handleAnswer((ans === 'even' && isEven) || (ans === 'odd' && !isEven));
             },
 
-            // --- Universal Answer Handler ---
             async handleAnswer(isCorrect) {
                 if (isCorrect) {
                     this.playSound('success');
                     
                     if (this.isTimeAttack) {
                         this.taScore += 1;
-                        this.taTimeLeft += 2; // Bonus Time!
+                        this.taTimeLeft += 2; 
                         this.updateTimeAttackUI();
                         
-                        // Show quick green flash
                         document.getElementById(`mode-${this.currentGame.mode}`).classList.add('opacity-50');
                         setTimeout(() => {
                             document.getElementById(`mode-${this.currentGame.mode}`).classList.remove('opacity-50');
                             this.playNextTimeAttackTask();
                         }, 150);
                     } else {
-                        // Normal Mode Flow
                         this.confetti.fire();
                         this.user.stars += 1;
                         this.user.coins += 5;
@@ -1384,9 +1407,8 @@
                     this.shakeError(`mode-${this.currentGame.mode}`);
                     
                     if (this.isTimeAttack) {
-                        this.taTimeLeft = Math.max(0, this.taTimeLeft - 3); // Penalty Time
+                        this.taTimeLeft = Math.max(0, this.taTimeLeft - 3); 
                         this.updateTimeAttackUI();
-                        // Track Time Attack Mistakes in background too
                         await this.updateNumberStat(this.currentGame.number, false, this.currentGame.mode);
                     } else {
                         await this.updateNumberStat(this.currentGame.number, false, this.currentGame.mode);
@@ -1452,7 +1474,6 @@
                 if (this.modalCallback) this.modalCallback();
             },
 
-            // --- Audio ---
             speakCurrentPrompt() {
                 if (!this.user.voice || this.isTimeAttack) return;
                 let text = "";
@@ -1505,7 +1526,6 @@
 
             setupCanvasListeners() {
                 this.canvas = document.getElementById('drawing-board');
-                
                 const startPos = (e) => {
                     e.preventDefault();
                     if(!this.ctx) return;
@@ -1517,13 +1537,11 @@
                     if (!this.isDrawing || !this.ctx) return;
                     e.preventDefault();
                     const pos = this.getCanvasPos(e);
-                    
                     this.ctx.beginPath();
                     this.ctx.lineWidth = 18;
                     this.ctx.lineCap = 'round';
                     this.ctx.lineJoin = 'round';
                     this.ctx.strokeStyle = '#2563EB'; 
-                    
                     this.ctx.moveTo(this.lastX, this.lastY);
                     this.ctx.lineTo(pos.x, pos.y);
                     this.ctx.stroke();
@@ -1555,20 +1573,16 @@
 
             checkHandwriting() {
                 if(!this.ctx || !this.canvas) return;
-                
                 const width = this.canvas.width;
                 const height = this.canvas.height;
                 const userImgData = this.ctx.getImageData(0, 0, width, height).data;
-                
                 const offCanvas = document.createElement('canvas');
                 offCanvas.width = width;
                 offCanvas.height = height;
                 const offCtx = offCanvas.getContext('2d');
-                
                 offCtx.font = 'bold 140px "Comic Sans MS", "Chalkboard SE", sans-serif';
                 offCtx.textAlign = 'center';
                 offCtx.textBaseline = 'middle';
-                
                 offCtx.fillStyle = "black";
                 offCtx.fillText(this.currentGame.number.toString(), width / 2, height / 2);
                 offCtx.lineWidth = 75; 
@@ -1578,53 +1592,83 @@
                 offCtx.strokeText(this.currentGame.number.toString(), width / 2, height / 2);
                 
                 const targetImgData = offCtx.getImageData(0, 0, width, height).data;
-                
-                let hit = 0;        
-                let miss = 0;       
-                let falseAlarm = 0; 
-
+                let hit = 0; let miss = 0; let falseAlarm = 0; 
                 for(let i=3; i<userImgData.length; i+=4) {
                     const isUserInk = userImgData[i] > 50;
                     const isTargetInk = targetImgData[i] > 50;
-
                     if (isTargetInk && isUserInk) hit++;
                     else if (isTargetInk && !isUserInk) miss++;
                     else if (!isTargetInk && isUserInk) falseAlarm++;
                 }
-                
                 const userTotal = hit + falseAlarm;
                 
-                if (userTotal < 800) {
-                    this.handleAnswer(false);
-                    return;
-                }
-
+                // Reduced minimum ink requirement to 400 for quick child writing!
+                if (userTotal < 400) { this.handleAnswer(false); return; }
                 const coverage = hit / ((hit + miss) || 1);
                 const precision = hit / ((hit + falseAlarm) || 1);
+                if (coverage > 0.08 && precision > 0.50) { this.handleAnswer(true); } 
+                else { this.handleAnswer(false); }
+            },
 
-                if (coverage > 0.08 && precision > 0.50) {
-                    this.handleAnswer(true);
-                } else {
-                    this.handleAnswer(false);
+            getGrade(acc) {
+                if(acc >= 95) return 'A+ 🏆';
+                if(acc >= 85) return 'A 🌟';
+                if(acc >= 75) return 'B 👍';
+                if(acc >= 60) return 'C 📚';
+                return 'D ⚠️';
+            },
+
+            getAnalysisData() {
+                let modeMistakeCounts = { write: 0, type: 0, choice: 0, missing: 0, order: 0, count: 0, compare: 0, evenodd: 0 };
+                this.stats.forEach(s => {
+                    if(s.modeErrors) {
+                        for (let m in s.modeErrors) { modeMistakeCounts[m] = (modeMistakeCounts[m] || 0) + s.modeErrors[m]; }
+                    }
+                });
+
+                let maxMistakes = 0;
+                let worstMode = "";
+                for (let m in modeMistakeCounts) {
+                    if (modeMistakeCounts[m] > maxMistakes) { maxMistakes = modeMistakeCounts[m]; worstMode = m; }
                 }
+
+                let reason = "";
+                let suggestion = "";
+
+                if (maxMistakes > 2) {
+                    if(worstMode === 'missing') {
+                        reason = "Kyunki bacche ko numbers ke beech ka sequence aur skip counting samajh nahi aayi hai.";
+                        suggestion = "Action: Number line draw karein aur 10s, 100s ki skip counting bol-bol kar practice karwayein.";
+                    } else if(worstMode === 'type') {
+                        reason = "Bade numbers ki spelling padhkar digit samajhne (Place Value) me dikkat ho rahi hai.";
+                        suggestion = "Action: App ke 'Study Room' me bade numbers type karke visual blocks dikhayein.";
+                    } else if(worstMode === 'compare') {
+                        reason = "Numbers ki value (Kaun bada/chhota) compare karne me confusion hai.";
+                        suggestion = "Action: Left-most digit (sabse bada sthan) pehle dekhna sikhayein. (eg: 450 > 390 kyunki 4 > 3)";
+                    } else if(worstMode === 'write') {
+                        reason = "Numbers ki aakriti (shape) theek se yaad nahi hai ya ungli control weak hai.";
+                        suggestion = "Action: Copy par bade-bade numbers likhwa kar tracing practice karwayein.";
+                    } else if(worstMode === 'order') {
+                        reason = "Ascending/Descending order me lagane ka logic theek se process nahi ho raha hai.";
+                        suggestion = "Action: Sabse chhota number pehle dhundhne ki habit banayein.";
+                    } else if(worstMode === 'evenodd') {
+                        reason = "Even (Sam) aur Odd (Visham) numbers pehchanne ka rule yaad nahi hai.";
+                        suggestion = "Action: Rule yaad dilayein - Jiske aakhri me 0,2,4,6,8 aaye wo Even hai.";
+                    } else {
+                        reason = `Sabse jyada galti '${worstMode}' game mode me hui hai.`;
+                        suggestion = "Basic fundamentals ki practice lagatar karwayein.";
+                    }
+                }
+                return { maxMistakes, worstMode, reason, suggestion };
             },
 
             renderParentDashboard() {
                 const mastered = this.stats.filter(s => s.stage >= 5).length;
                 let totalCorrect = 0, totalAttempts = 0;
                 
-                // Analytics variables
-                let modeMistakeCounts = { write: 0, type: 0, choice: 0, missing: 0, order: 0, count: 0, compare: 0, evenodd: 0 };
-                
                 this.stats.forEach(s => {
                     totalCorrect += s.correctCount;
                     totalAttempts += (s.correctCount + s.wrongCount);
-                    
-                    if(s.modeErrors) {
-                        for (let m in s.modeErrors) {
-                            modeMistakeCounts[m] = (modeMistakeCounts[m] || 0) + s.modeErrors[m];
-                        }
-                    }
                 });
                 
                 const acc = totalAttempts === 0 ? 0 : Math.round((totalCorrect / totalAttempts) * 100);
@@ -1633,47 +1677,26 @@
                 document.getElementById('stat-mastered').innerText = mastered;
                 document.getElementById('stat-accuracy').innerText = `${acc}%`;
                 document.getElementById('bar-accuracy').style.width = `${acc}%`;
+                document.getElementById('stat-grade').innerText = totalAttempts > 5 ? this.getGrade(acc) : 'A+ 🏆';
 
-                // Calculate Weak Concepts
+                const analysis = this.getAnalysisData();
                 const weakConceptsList = document.getElementById('weak-concepts-list');
-                let weakConceptHtml = "";
-                let maxMistakes = 0;
-                let worstMode = "";
                 
-                for (let m in modeMistakeCounts) {
-                    if (modeMistakeCounts[m] > maxMistakes) {
-                        maxMistakes = modeMistakeCounts[m];
-                        worstMode = m;
-                    }
-                }
-
-                if (maxMistakes > 2) {
-                    let issueText = "";
-                    if(worstMode === 'missing') issueText = "⚠️ Skip counting aur 'Missing Numbers' nikalne me dikkat ho rahi hai.";
-                    else if(worstMode === 'type') issueText = "⚠️ Bade numbers ki spelling padhkar keypad pe Type karne me galti ho rahi hai.";
-                    else if(worstMode === 'compare') issueText = "⚠️ Numbers ko Bada (>) ya Chhota (<) pehchanne me confusion hai.";
-                    else if(worstMode === 'write') issueText = "⚠️ Screen par numbers thik se draw karne me problem hai.";
-                    else if(worstMode === 'order') issueText = "⚠️ Numbers ko chote se bade kram (Order) me lagane me mistake ho rahi hai.";
-                    else if(worstMode === 'evenodd') issueText = "⚠️ Even (Sam) aur Odd (Visham) numbers pehchanne me dikkat hai.";
-                    else issueText = `⚠️ Sabse jyada galti '${worstMode}' game mode me hui hai.`;
-                    
-                    weakConceptHtml = `<strong>Analysis:</strong> ${issueText} <br><span class="text-xs text-red-500 block mt-1">(Is mode me ${maxMistakes} baar galti hui hai)</span>`;
+                if (analysis.maxMistakes > 2) {
+                    weakConceptsList.innerHTML = `
+                        <strong class="text-red-700">Problem:</strong> ${analysis.reason} <br>
+                        <strong class="text-green-700 mt-2 block">Solution:</strong> ${analysis.suggestion} <br>
+                        <span class="text-xs text-slate-500 block mt-1">(Is type me ${analysis.maxMistakes} galtiyaan hui hain)</span>`;
                 } else {
-                    weakConceptHtml = `<span class="text-green-600 font-bold">✅ Excellent! Abhi tak kisi bhi concept me lagatar galti nahi mili.</span>`;
+                    weakConceptsList.innerHTML = `<span class="text-green-600 font-bold">✅ Excellent! Abhi tak kisi bhi concept me lagatar galti nahi mili. Bacchi bohot sahi padh rahi hai!</span>`;
                 }
-                weakConceptsList.innerHTML = weakConceptHtml;
 
-                // Time Attack Stats
                 document.getElementById('stat-ta-games').innerText = this.user.taGames || 0;
                 document.getElementById('stat-ta-high').innerText = this.user.taHighScore || 0;
-                let avg = this.user.taGames > 0 ? Math.round(this.user.taTotalScore / this.user.taGames) : 0;
-                document.getElementById('stat-ta-avg').innerText = `${avg} points/game`;
 
                 const statsList = document.getElementById('detailed-stats-list');
                 statsList.innerHTML = '';
-                
                 const sortedStats = [...this.stats].sort((a, b) => b.wrongCount - a.wrongCount);
-                
                 if (sortedStats.length === 0) {
                     statsList.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-400 italic">No activity yet. Great job!</td></tr>';
                 } else {
@@ -1696,34 +1719,20 @@
                 const sortedStats = [...this.stats].sort((a, b) => b.wrongCount - a.wrongCount);
                 const weakNumbers = sortedStats.filter(s => s.wrongCount > s.correctCount && s.wrongCount > 0).slice(0, 5);
                 
-                // Deep Analysis for PDF
-                let modeMistakeCounts = {};
-                this.stats.forEach(s => {
-                    if(s.modeErrors) {
-                        for (let m in s.modeErrors) {
-                            modeMistakeCounts[m] = (modeMistakeCounts[m] || 0) + s.modeErrors[m];
-                        }
-                    }
-                });
-                let maxMistakes = 0;
-                let worstMode = "";
-                for (let m in modeMistakeCounts) {
-                    if (modeMistakeCounts[m] > maxMistakes) { maxMistakes = modeMistakeCounts[m]; worstMode = m; }
-                }
+                let totalCorrect = 0, totalAttempts = 0;
+                this.stats.forEach(s => { totalCorrect += s.correctCount; totalAttempts += (s.correctCount + s.wrongCount); });
+                const acc = totalAttempts === 0 ? 0 : Math.round((totalCorrect / totalAttempts) * 100);
+                const grade = totalAttempts > 5 ? this.getGrade(acc) : 'A+ 🏆';
+
+                const analysis = this.getAnalysisData();
 
                 let deepAnalysisHtml = "";
-                if(maxMistakes > 2) {
-                    let issueText = worstMode; // Default
-                    if(worstMode === 'missing') issueText = "Skip counting aur 'Missing Numbers' nikalna.";
-                    else if(worstMode === 'type') issueText = "Bade numbers ki spelling padhkar Type karna.";
-                    else if(worstMode === 'compare') issueText = "Numbers ko Bada (>) ya Chhota (<) compare karna.";
-                    else if(worstMode === 'write') issueText = "Screen par sahi se drawing/writing karna.";
-                    else if(worstMode === 'evenodd') issueText = "Even (Sam) aur Odd (Visham) me antar samajhna.";
-                    
+                if(analysis.maxMistakes > 2) {
                     deepAnalysisHtml = `
                     <div class="weak-points-box" style="margin-top: 10px; background: #fff1f2; border-color: #fda4af;">
-                        <h3>🧠 Deep Analysis: Main Kamzori</h3>
-                        <p style="color: #be123c;"><strong>Focus Area:</strong> Bacchi ko sabse jyada dikkat <u>${issueText}</u> me aa rahi hai. Is type ke sawalo me ${maxMistakes} galtiyaan hui hain.</p>
+                        <h3>🧠 AI Analysis: Galti Kyun Aur Kahan?</h3>
+                        <p style="color: #be123c;"><strong>Reason:</strong> ${analysis.reason}</p>
+                        <p style="color: #15803d; margin-top:10px;"><strong>Suggestion:</strong> ${analysis.suggestion}</p>
                     </div>`;
                 }
 
@@ -1731,18 +1740,15 @@
                 if (weakNumbers.length > 0) {
                     actionPlanHtml = `
                         <div class="weak-points-box">
-                            <h3>⚠️ Action Plan: In numbers pe focus karein</h3>
-                            <ul>
-                                ${weakNumbers.map(s => `<li><strong>${s.number.toLocaleString('en-IN')}</strong> - Missed ${s.wrongCount} times.</li>`).join('')}
-                            </ul>
-                            <p style="font-size: 14px; margin-top: 10px;"><em>Tip: Open the 'Study Room' in the app and have your child type these exact numbers!</em></p>
+                            <h3>⚠️ Target Practice: Weak Numbers</h3>
+                            <ul>${weakNumbers.map(s => `<li><strong>${s.number.toLocaleString('en-IN')}</strong> - Galat: ${s.wrongCount} baar.</li>`).join('')}</ul>
                         </div>
                     `;
                 } else {
                     actionPlanHtml = `
                         <div class="good-points-box">
-                            <h3>🌟 Excellent! No Weak Points Detected</h3>
-                            <p>Your child is performing perfectly on all practiced numbers so far!</p>
+                            <h3>🌟 Excellent Performance!</h3>
+                            <p>Bacchi sabhi numbers ko theek se pehchan rahi hai. Koi weak point nahi hai.</p>
                         </div>
                     `;
                 }
@@ -1757,7 +1763,8 @@
                         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #334155; padding: 40px; margin: 0 auto; max-width: 800px; }
                         h1 { color: #2563eb; text-align: center; font-size: 32px; margin-bottom: 5px; }
                         h2 { color: #64748b; text-align: center; font-size: 18px; font-weight: normal; margin-top: 0; }
-                        .summary-box { background: #eff6ff; border: 2px solid #bfdbfe; padding: 20px; border-radius: 12px; margin-bottom: 20px; font-size: 16px; }
+                        .summary-box { background: #eff6ff; border: 2px solid #bfdbfe; padding: 20px; border-radius: 12px; margin-bottom: 20px; font-size: 16px; position: relative;}
+                        .grade-badge { position: absolute; top: 20px; right: 20px; background: #1e40af; color: white; padding: 10px 15px; border-radius: 50px; font-size: 20px; font-weight: bold;}
                         .summary-box p { margin: 8px 0; }
                         .weak-points-box { background: #fef2f2; border: 2px solid #fecaca; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; }
                         .weak-points-box h3 { color: #dc2626; margin-top: 0; }
@@ -1775,35 +1782,27 @@
                 </head>
                 <body>
                     <h1>Number Hero Academy 🦸‍♀️</h1>
-                    <h2>Student Progress & Analytics Report - ${date}</h2>
-                    
+                    <h2>Detailed Progress & Analytics Report - ${date}</h2>
                     <div class="summary-box">
+                        <div class="grade-badge">Grade: ${grade}</div>
                         <p><strong>Current Level:</strong> ${this.user.maxLevel} out of 3000</p>
-                        <p><strong>Total Stars Earned:</strong> ⭐ ${this.user.stars}</p>
+                        <p><strong>Overall Accuracy:</strong> ${acc}%</p>
                         <p><strong>Numbers Mastered:</strong> ${this.stats.filter(s => s.stage >= 5).length}</p>
                         <hr style="border: 1px solid #bfdbfe; margin: 15px 0;">
                         <h4 style="margin: 0 0 10px 0; color: #1e40af;">⏱️ Time Attack Analytics</h4>
                         <p style="font-size: 14px;"><strong>Games Played:</strong> ${this.user.taGames || 0} | <strong>High Score:</strong> ${this.user.taHighScore || 0} | <strong>Average Speed:</strong> ${avgTaScore} points/game</p>
                     </div>
-
                     ${deepAnalysisHtml}
                     ${actionPlanHtml}
-
-                    <h3>Detailed Mistake & Mastery Log</h3>
+                    <h3>Detailed Mistake Log</h3>
                     <table>
                         <thead>
-                            <tr>
-                                <th>Number</th>
-                                <th>Wrong Attempts ❌</th>
-                                <th>Correct Attempts ✅</th>
-                                <th>Status</th>
-                            </tr>
+                            <tr><th>Number</th><th>Wrong Attempts ❌</th><th>Correct Attempts ✅</th><th>Status</th></tr>
                         </thead>
                         <tbody>
                 `;
 
                 if(sortedStats.length === 0) html += `<tr><td colspan="4">No practice data available yet.</td></tr>`;
-
                 sortedStats.forEach(s => {
                     let isWeak = s.wrongCount > s.correctCount && s.wrongCount > 0;
                     html += `
@@ -1819,7 +1818,7 @@
                 html += `
                         </tbody>
                     </table>
-                    <p style="text-align:center; margin-top: 40px; font-size: 12px; color: #94a3b8;">Generated safely offline by Number Hero Academy Analytics</p>
+                    <p style="text-align:center; margin-top: 40px; font-size: 12px; color: #94a3b8;">Generated safely offline by Number Hero Academy Analytics Engine</p>
                 </body>
                 </html>
                 `;
@@ -1827,16 +1826,13 @@
                 const iframe = document.createElement('iframe');
                 iframe.style.display = 'none';
                 document.body.appendChild(iframe);
-                
                 iframe.contentDocument.write(html);
                 iframe.contentDocument.close();
                 
                 setTimeout(() => {
                     iframe.contentWindow.focus();
                     iframe.contentWindow.print(); 
-                    setTimeout(() => {
-                        document.body.removeChild(iframe);
-                    }, 2000);
+                    setTimeout(() => { document.body.removeChild(iframe); }, 2000);
                 }, 500);
             },
 
@@ -1874,7 +1870,6 @@
             renderRewards() {
                 const list = document.getElementById('achievements-list');
                 list.innerHTML = '';
-                
                 const badges = [
                     { id: 'first', title: 'Level 10', req: 10, icon: '🌟' },
                     { id: 'fifty', title: 'Level 50', req: 50, icon: '🚀' },
@@ -1883,7 +1878,6 @@
                     { id: 'thousand', title: 'Level 1000', req: 1000, icon: '💎' },
                     { id: 'max', title: 'Math Genius!', req: 3000, icon: '🦸‍♀️' }
                 ];
-
                 badges.forEach(b => {
                     const unlocked = this.user.maxLevel >= b.req;
                     let el = document.createElement('div');
@@ -1898,7 +1892,6 @@
         };
 
         window.onload = () => App.init();
-
     </script>
 </body>
 </html>
