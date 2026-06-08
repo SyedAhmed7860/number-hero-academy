@@ -309,16 +309,16 @@
     <!-- Screen: Parent Dashboard -->
     <div id="screen-parent" class="screen max-w-md mx-auto relative bg-slate-50 p-6">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-slate-800">Mata-Pita Dashboard</h2>
+            <h2 class="text-2xl font-bold text-slate-800">Parent Dashboard</h2>
             <button onclick="App.showScreen('screen-home')" class="text-blue-500 font-bold bg-blue-100 px-4 py-2 rounded-xl">Back</button>
         </div>
 
         <div class="bg-white p-4 rounded-2xl shadow-sm mb-4 border-2 border-green-100">
             <h3 class="font-bold text-lg mb-2 text-green-700">☁️ Data Sync & Backup</h3>
-            <p class="text-xs text-slate-500 mb-3 font-bold">Dusre device par resume karne ke liye yahan se data Export karke wahan Import karein.</p>
+            <p class="text-xs text-slate-500 mb-3 font-bold">Export your data here and Import it on another device to resume your progress.</p>
             <div class="flex space-x-2">
-                <button onclick="App.exportData()" class="btn flex-1 bg-green-100 text-green-700 font-bold py-3 rounded-xl text-sm shadow-sm">📤 Export Save Code</button>
-                <button onclick="App.importData()" class="btn flex-1 bg-blue-100 text-blue-700 font-bold py-3 rounded-xl text-sm shadow-sm">📥 Import Save Code</button>
+                <button onclick="App.exportData()" class="btn flex-1 bg-green-100 text-green-700 font-bold py-3 rounded-xl text-sm shadow-sm">📤 Export Save</button>
+                <button onclick="App.importData()" class="btn flex-1 bg-blue-100 text-blue-700 font-bold py-3 rounded-xl text-sm shadow-sm">📥 Import Save</button>
             </div>
         </div>
         
@@ -333,9 +333,9 @@
 
         <div class="bg-white p-4 rounded-2xl shadow-sm mb-4 border-2 border-red-100">
             <div class="flex justify-between items-center mb-2">
-                <h3 class="font-bold text-lg text-red-600">🧠 Deep Analysis (Kamzori)</h3>
+                <h3 class="font-bold text-lg text-red-600">🧠 Deep Analysis (Weaknesses)</h3>
             </div>
-            <div id="weak-concepts-list" class="text-sm text-slate-600 mb-2 p-3 bg-red-50 rounded-xl border border-red-100 italic">Data collect ho raha hai...</div>
+            <div id="weak-concepts-list" class="text-sm text-slate-600 mb-2 p-3 bg-red-50 rounded-xl border border-red-100 italic">Collecting data...</div>
         </div>
 
         <div class="bg-white p-4 rounded-2xl shadow-sm mb-4 border-2 border-yellow-100">
@@ -354,7 +354,7 @@
 
         <div class="bg-white p-4 rounded-2xl shadow-sm mb-4">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-lg text-slate-700">📋 Har Number Ki Galti</h3>
+                <h3 class="font-bold text-lg text-slate-700">📋 Detailed Mistake Log</h3>
                 <button onclick="App.generateReport()" class="bg-indigo-100 text-indigo-700 px-3 py-2 rounded-xl text-sm font-bold shadow-sm active:scale-95 transition-transform flex items-center">
                     <span>📄 Save PDF Report</span>
                 </button>
@@ -410,8 +410,8 @@
     <div id="modal-backup" class="fixed inset-0 hidden items-center justify-center z-50 overlay-bg">
         <div class="bg-white p-6 rounded-3xl shadow-2xl max-w-sm w-full text-center anim-bounce-in border-4 border-green-200">
             <h3 id="backup-title" class="text-2xl font-bold text-slate-800 mb-2">Save Code</h3>
-            <p id="backup-desc" class="text-slate-600 mb-4 text-sm font-bold">Ye code copy karke apne doosre device me paste karein:</p>
-            <textarea id="backup-textarea" class="w-full h-32 p-3 border-2 border-slate-200 rounded-xl mb-4 text-xs font-mono break-all"></textarea>
+            <p id="backup-desc" class="text-slate-600 mb-4 text-sm font-bold">Copy this code and paste it into your other device:</p>
+            <textarea id="backup-textarea" spellcheck="false" class="w-full h-32 p-3 border-2 border-slate-200 rounded-xl mb-4 text-xs font-mono break-all outline-none resize-none"></textarea>
             <div class="flex space-x-3">
                 <button onclick="App.closeBackupModal()" class="btn flex-1 bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm">Cancel</button>
                 <button id="backup-action-btn" class="btn flex-1 bg-green-500 text-white font-bold py-3 rounded-xl text-sm">Action</button>
@@ -436,10 +436,10 @@
     <div id="install-modal" class="fixed inset-0 hidden items-center justify-center z-50 overlay-bg">
         <div class="bg-white p-6 rounded-3xl shadow-2xl max-w-xs w-full text-center anim-bounce-in border-4 border-blue-200">
             <div class="text-5xl mb-4">📱</div>
-            <h3 class="text-2xl font-bold text-blue-700 mb-2">App Install Karein!</h3>
-            <p class="text-slate-600 mb-6 text-md font-bold">Bina internet ke daily practice ke liye is App ko apne phone me install karein.</p>
+            <h3 class="text-2xl font-bold text-blue-700 mb-2">Install App!</h3>
+            <p class="text-slate-600 mb-6 text-md font-bold">Install this app on your device for seamless offline daily practice.</p>
             <div class="flex space-x-3">
-                <button onclick="App.closeInstallModal()" class="btn flex-1 bg-slate-100 text-slate-500 font-bold py-3 rounded-xl text-md">Baad Me</button>
+                <button onclick="App.closeInstallModal()" class="btn flex-1 bg-slate-100 text-slate-500 font-bold py-3 rounded-xl text-md">Later</button>
                 <button onclick="App.installApp()" class="btn flex-1 bg-blue-500 text-white font-bold py-3 rounded-xl text-lg">Install ✅</button>
             </div>
         </div>
@@ -461,7 +461,7 @@
                 document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestUrl}">`);
 
                 const swCode = `
-                    const CACHE_NAME = 'number-hero-v8';
+                    const CACHE_NAME = 'number-hero-v9';
                     
                     self.addEventListener('install', event => {
                         event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll([location.href])));
@@ -613,6 +613,7 @@
             
             canvas: null, ctx: null, isDrawing: false, lastX: 0, lastY: 0,
             isTimeAttack: false, taTimeLeft: 0, taScore: 0, taInterval: null,
+            isProcessingAnswer: false,
 
             async init() {
                 window.App = this; 
@@ -677,7 +678,7 @@
                 const encoded = btoa(JSON.stringify(data));
                 
                 document.getElementById('backup-title').innerText = "Export Save Code";
-                document.getElementById('backup-desc').innerText = "Ye lamba code copy karein aur apne doosre device me Paste (Import) karein:";
+                document.getElementById('backup-desc').innerText = "Copy this long code and Paste (Import) it on your other device:";
                 
                 const ta = document.getElementById('backup-textarea');
                 ta.value = encoded;
@@ -689,7 +690,7 @@
                     ta.select();
                     document.execCommand('copy');
                     this.closeBackupModal();
-                    this.showModal("Copied! 📋", "Save code copy ho gaya hai. Ise WhatsApp/Notes me bhej lein.", () => {});
+                    this.showModal("Copied! 📋", "Save code copied successfully. Save it in Notes or send it via messaging apps.", () => {});
                 };
                 
                 document.getElementById('modal-backup').classList.remove('hidden');
@@ -698,7 +699,7 @@
 
             importData() {
                 document.getElementById('backup-title').innerText = "Import Save Code";
-                document.getElementById('backup-desc').innerText = "Jo code aapne pehle copy kiya tha, use yahan paste karein:";
+                document.getElementById('backup-desc').innerText = "Paste the code you copied earlier here:";
                 
                 const ta = document.getElementById('backup-textarea');
                 ta.value = "";
@@ -719,11 +720,11 @@
                             for (let s of this.stats) await this.db.put('stats', s);
                             this.updateHomeUI();
                             this.closeBackupModal();
-                            this.showModal("Restored! 🎉", "Bacchi ki purani progress wapas aa gayi hai!", () => this.showScreen('screen-home'));
+                            this.showModal("Restored! 🎉", "Student's progress has been successfully restored!", () => this.showScreen('screen-home'));
                         }
                     } catch(e) {
                         this.closeBackupModal();
-                        this.showModal("Error ⚠️", "Galat code dala hai! Kripya sahi code copy karein.", () => {});
+                        this.showModal("Error ⚠️", "Invalid code! Please copy the correct save code.", () => {});
                     }
                 };
                 
@@ -875,7 +876,7 @@
                 speechSynthesis.speak(utterance);
             },
 
-            // --- PROGRESSIVE DIFFICULTY ENGINE FIX ---
+            // --- PROGRESSIVE DIFFICULTY ENGINE ---
             getRangeForLevel(lvl) {
                 let min = 1, max = 10;
                 if (lvl <= 20) { min = 1; max = 20; }
@@ -1002,7 +1003,7 @@
                 });
             },
 
-            // --- NORMAL LEVEL LOGIC FIX ---
+            // --- NORMAL LEVEL LOGIC ---
             startLevel(lvl) {
                 this.isTimeAttack = false;
                 document.getElementById('progress-bar-container').classList.remove('hidden');
@@ -1013,11 +1014,9 @@
                 const range = this.getRangeForLevel(lvl);
                 
                 const now = Date.now();
-                // Filter due numbers ONLY in current range to ensure difficulty increases!
                 let due = this.stats.filter(s => s.nextReview <= now && s.stage < 6 && s.number >= range.min && s.number <= range.max).sort((a,b) => a.nextReview - b.nextReview);
                 
                 for(let i=0; i<5; i++) {
-                    // Maximum 1 old review question per level so they mostly see new hard numbers
                     if (i === 0 && due.length > 0) {
                         this.currentLesson.push(due.shift().number);
                     } else {
@@ -1049,6 +1048,8 @@
                     this.finishLesson();
                     return;
                 }
+                
+                this.isProcessingAnswer = false; // Reset lock for new task
                 
                 const targetNumber = this.currentLesson[this.lessonProgress];
                 let availableModes = ['choice', 'missing', 'order', 'count', 'write', 'type', 'compare', 'evenodd'];
@@ -1088,7 +1089,7 @@
                 }
             },
 
-            // --- ALL GAME MODES SETUP (With Freeze Fixes) ---
+            // --- ALL GAME MODES SETUP ---
             setupModeWrite(num) {
                 document.getElementById('write-prompt').innerText = `Write the number!`;
                 document.getElementById('write-ghost').innerText = num;
@@ -1131,7 +1132,7 @@
             setupModeChoice(num) {
                 document.getElementById('choice-target').innerText = num.toLocaleString('en-IN');
                 let opts = [num];
-                let safety = 0; // Freeze preventer
+                let safety = 0; 
                 while(opts.length < 4 && safety < 50) {
                     safety++;
                     let variation = Math.floor(num * 0.1) || 5;
@@ -1142,7 +1143,6 @@
                     }
                     if (!opts.includes(r)) opts.push(r);
                 }
-                // Fallback for extreme cases
                 while(opts.length < 4) opts.push(num + opts.length);
 
                 opts.sort(() => Math.random() - 0.5);
@@ -1191,7 +1191,7 @@
                 });
 
                 let opts = [num];
-                let safety = 0; // Freeze preventer
+                let safety = 0; 
                 while(opts.length < 3 && safety < 50) {
                     safety++;
                     let r = Math.max(1, num + (Math.floor(Math.random() * 5 - 2) * step));
@@ -1296,7 +1296,7 @@
                 
                 const container = document.getElementById('count-items');
                 container.innerHTML = '';
-                // Safety restriction to avoid freezing
+                
                 let displayNum = Math.min(num, 30); 
                 for(let i=0; i<displayNum; i++) {
                     let s = document.createElement('span');
@@ -1331,7 +1331,7 @@
             setupModeCompare(num) {
                 let num2;
                 let isEq = Math.random() > 0.85; 
-                let safety = 0; // Freeze preventer
+                let safety = 0; 
                 
                 if (isEq) { num2 = num; } else {
                     do {
@@ -1339,7 +1339,7 @@
                         let variation = Math.floor(num * 0.2) || 5;
                         num2 = num + Math.floor(Math.random() * variation * 2) - variation;
                     } while((num2 < 1 || num2 === num) && safety < 50);
-                    if(safety >= 50) num2 = num + 1; // Fallback
+                    if(safety >= 50) num2 = num + 1; 
                 }
 
                 if(Math.random() > 0.5) { this.currentGame.cNum1 = num; this.currentGame.cNum2 = num2; } 
@@ -1368,6 +1368,10 @@
             },
 
             async handleAnswer(isCorrect) {
+                // Prevent multi-click fast skipping bug
+                if (this.isProcessingAnswer) return;
+                this.isProcessingAnswer = true;
+
                 if (isCorrect) {
                     this.playSound('success');
                     
@@ -1410,6 +1414,7 @@
                         this.taTimeLeft = Math.max(0, this.taTimeLeft - 3); 
                         this.updateTimeAttackUI();
                         await this.updateNumberStat(this.currentGame.number, false, this.currentGame.mode);
+                        this.isProcessingAnswer = false; // Reset lock for next attempt
                     } else {
                         await this.updateNumberStat(this.currentGame.number, false, this.currentGame.mode);
                         if(this.currentGame.mode === 'write') this.clearCanvas();
@@ -1418,6 +1423,7 @@
                             let u = new SpeechSynthesisUtterance(phrases[Math.floor(Math.random() * phrases.length)]);
                             speechSynthesis.speak(u);
                         }
+                        this.isProcessingAnswer = false; // Reset lock for next attempt
                     }
                 }
                 this.saveData();
@@ -1637,26 +1643,26 @@
 
                 if (maxMistakes > 2) {
                     if(worstMode === 'missing') {
-                        reason = "Kyunki bacche ko numbers ke beech ka sequence aur skip counting samajh nahi aayi hai.";
-                        suggestion = "Action: Number line draw karein aur 10s, 100s ki skip counting bol-bol kar practice karwayein.";
+                        reason = "The student struggles with number sequences and skip counting.";
+                        suggestion = "Action: Draw a number line and practice skip counting by 10s and 100s aloud.";
                     } else if(worstMode === 'type') {
-                        reason = "Bade numbers ki spelling padhkar digit samajhne (Place Value) me dikkat ho rahi hai.";
-                        suggestion = "Action: App ke 'Study Room' me bade numbers type karke visual blocks dikhayein.";
+                        reason = "The student has difficulty translating large number spellings into digits (Place Value).";
+                        suggestion = "Action: Use the 'Study Room' to type large numbers and explore their visual base-10 blocks.";
                     } else if(worstMode === 'compare') {
-                        reason = "Numbers ki value (Kaun bada/chhota) compare karne me confusion hai.";
-                        suggestion = "Action: Left-most digit (sabse bada sthan) pehle dekhna sikhayein. (eg: 450 > 390 kyunki 4 > 3)";
+                        reason = "The student is confused about comparing number values (Greater than / Less than).";
+                        suggestion = "Action: Teach them to compare the left-most digit first (e.g., 450 > 390 because 4 > 3).";
                     } else if(worstMode === 'write') {
-                        reason = "Numbers ki aakriti (shape) theek se yaad nahi hai ya ungli control weak hai.";
-                        suggestion = "Action: Copy par bade-bade numbers likhwa kar tracing practice karwayein.";
+                        reason = "The student has weak fine motor control or forgets the exact shape of numbers.";
+                        suggestion = "Action: Practice physical tracing of large numbers on paper.";
                     } else if(worstMode === 'order') {
-                        reason = "Ascending/Descending order me lagane ka logic theek se process nahi ho raha hai.";
-                        suggestion = "Action: Sabse chhota number pehle dhundhne ki habit banayein.";
+                        reason = "The logic for arranging numbers in Ascending/Descending order is not fully processed.";
+                        suggestion = "Action: Build the habit of always finding the smallest number first.";
                     } else if(worstMode === 'evenodd') {
-                        reason = "Even (Sam) aur Odd (Visham) numbers pehchanne ka rule yaad nahi hai.";
-                        suggestion = "Action: Rule yaad dilayein - Jiske aakhri me 0,2,4,6,8 aaye wo Even hai.";
+                        reason = "The student forgets the rule for identifying Even and Odd numbers.";
+                        suggestion = "Action: Remind them of the rule: Numbers ending in 0, 2, 4, 6, 8 are Even.";
                     } else {
-                        reason = `Sabse jyada galti '${worstMode}' game mode me hui hai.`;
-                        suggestion = "Basic fundamentals ki practice lagatar karwayein.";
+                        reason = `Most mistakes occurred in the '${worstMode}' game mode.`;
+                        suggestion = "Continue consistent practice of basic fundamentals.";
                     }
                 }
                 return { maxMistakes, worstMode, reason, suggestion };
@@ -1686,9 +1692,9 @@
                     weakConceptsList.innerHTML = `
                         <strong class="text-red-700">Problem:</strong> ${analysis.reason} <br>
                         <strong class="text-green-700 mt-2 block">Solution:</strong> ${analysis.suggestion} <br>
-                        <span class="text-xs text-slate-500 block mt-1">(Is type me ${analysis.maxMistakes} galtiyaan hui hain)</span>`;
+                        <span class="text-xs text-slate-500 block mt-1">(Made ${analysis.maxMistakes} mistakes in this mode)</span>`;
                 } else {
-                    weakConceptsList.innerHTML = `<span class="text-green-600 font-bold">✅ Excellent! Abhi tak kisi bhi concept me lagatar galti nahi mili. Bacchi bohot sahi padh rahi hai!</span>`;
+                    weakConceptsList.innerHTML = `<span class="text-green-600 font-bold">✅ Excellent! No consistent errors found in any concept. The student is performing very well!</span>`;
                 }
 
                 document.getElementById('stat-ta-games').innerText = this.user.taGames || 0;
@@ -1730,7 +1736,7 @@
                 if(analysis.maxMistakes > 2) {
                     deepAnalysisHtml = `
                     <div class="weak-points-box" style="margin-top: 10px; background: #fff1f2; border-color: #fda4af;">
-                        <h3>🧠 AI Analysis: Galti Kyun Aur Kahan?</h3>
+                        <h3>🧠 AI Analysis: Where and Why did mistakes happen?</h3>
                         <p style="color: #be123c;"><strong>Reason:</strong> ${analysis.reason}</p>
                         <p style="color: #15803d; margin-top:10px;"><strong>Suggestion:</strong> ${analysis.suggestion}</p>
                     </div>`;
@@ -1741,14 +1747,14 @@
                     actionPlanHtml = `
                         <div class="weak-points-box">
                             <h3>⚠️ Target Practice: Weak Numbers</h3>
-                            <ul>${weakNumbers.map(s => `<li><strong>${s.number.toLocaleString('en-IN')}</strong> - Galat: ${s.wrongCount} baar.</li>`).join('')}</ul>
+                            <ul>${weakNumbers.map(s => `<li><strong>${s.number.toLocaleString('en-IN')}</strong> - Wrong: ${s.wrongCount} times.</li>`).join('')}</ul>
                         </div>
                     `;
                 } else {
                     actionPlanHtml = `
                         <div class="good-points-box">
                             <h3>🌟 Excellent Performance!</h3>
-                            <p>Bacchi sabhi numbers ko theek se pehchan rahi hai. Koi weak point nahi hai.</p>
+                            <p>The student recognizes all numbers correctly. No weak points detected.</p>
                         </div>
                     `;
                 }
