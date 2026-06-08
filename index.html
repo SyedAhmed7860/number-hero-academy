@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Number Hero Academy</title>
+    <!-- Tailwind CSS for modern, adaptive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Dyslexia-friendly standard font stack & Mobile Touch Optimizations */
+        :root {
+            --primary: #3B82F6;
+            --secondary: #F59E0B;
+            --success: #10B981;
+            --danger: #EF4444;
+            --bg: #EFF6FF;
+        }
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'OpenDyslexic', sans-serif;
+            background-color: var(--bg);
+            touch-action: pan-y; /* Prevent scrolling when interacting with elements */
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        .screen { display: none; width: 100%; height: 100vh; overflow-y: auto; overflow-x: hidden; }
+        .screen.active { display: flex; flex-direction: column; }
+        
+        @keyframes bounceIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            60% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+        }
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); color: #EF4444; }
+            50% { transform: scale(1.1); color: #991B1B; }
+        }
+        .anim-bounce-in { animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .anim-shake { animation: shake 0.4s ease-in-out; }
+        .anim-pulse { animation: pulse-glow 2s infinite; }
+        .timer-warning { animation: pulse-red 0.5s infinite; font-weight: 900; }
+        
+        /* Interactive Buttons */
+        .btn {
+            transition: all 0.1s ease;
+            cursor: pointer;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+        }
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        /* Drawing Canvas & Drag Elements */
+        #drawing-board { touch-action: none; z-index: 10; border-radius: 1.5rem; }
+        .ghost-number { position: absolute; font-size: 140px; font-weight: bold; color: #e2e8f0; z-index: 0; pointer-events: none; }
+        .draggable { touch-action: none; z-index: 10; cursor: pointer; }
+        .drop-zone { border: 3px dashed #94a3b8; }
+        
+        /* Modals & Overlays */
+        .overlay-bg { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px;}
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px;}
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Screen: Home -->
+    <div id="screen-home" class="screen active max-w-md mx-auto relative bg-blue-50">
+        <div class="flex-1 flex flex-col items-center justify-center p-6 space-y-5">
+            <div class="text-center anim-bounce-in">
+                <h1 class="text-5xl font-black text-blue-600 drop-shadow-md mb-2">Number Hero</h1>
+                <p class="text-xl text-yellow-600 font-bold">Academy 🦸‍♀️</p>
+            </div>
+            
+            <div class="flex gap-3 mb-2 w-full justify-center flex-wrap">
+                <div class="bg-white px-4 py-2 rounded-2xl shadow-md font-bold text-lg text-yellow-500 flex items-center">⭐ <span id="home-stars" class="ml-1">0</span></div>
+                <div class="bg-white px-4 py-2 rounded-2xl shadow-md font-bold text-lg text-amber-500 flex items-center">🪙 <span id="home-coins" class="ml-1">0</span></div>
+                <div class="bg-white px-4 py-2 rounded-2xl shadow-md font-bold text-lg text-orange-500 flex items-center">🔥 <span id="home-streak" class="ml-1">0</span></div>
+            </div>
+
+            <div class="text-2xl font-black text-blue-800 drop-shadow-sm mb-2 text-center w-full">
+                Level <span id="home-level">1</span> / 3000
+            </div>
+
+            <button onclick="App.startLevel(App.user.level)" class="btn w-full bg-green-500 text-white text-3xl font-bold py-5 rounded-3xl" id="btn-play">
+                PLAY LEVEL 1 🚀
+            </button>
+
+            <!-- NAYA FEATURE: Time Attack Challenge -->
+            <button onclick="App.startTimeAttack()" class="btn w-full bg-red-500 text-white text-2xl font-bold py-4 rounded-3xl flex justify-center items-center">
+                ⏱️ TIME ATTACK
+            </button>
+            
+            <div class="grid grid-cols-2 gap-3 w-full mt-2">
+                <button onclick="App.showScreen('screen-levels')" class="btn bg-blue-400 text-white text-lg font-bold py-4 rounded-2xl flex flex-col items-center justify-center">
+                    <span class="text-2xl mb-1">🗺️</span> Levels
+                </button>
+                <button onclick="App.showScreen('screen-study')" class="btn bg-emerald-500 text-white text-lg font-bold py-4 rounded-2xl flex flex-col items-center justify-center">
+                    <span class="text-2xl mb-1">📚</span> Study
+                </button>
+                <button onclick="App.showScreen('screen-rewards')" class="btn bg-yellow-400 text-white text-lg font-bold py-4 rounded-2xl flex flex-col items-center justify-center">
+                    <span class="text-2xl mb-1">🏆</span> Rewards
+                </button>
+                <button onclick="App.showScreen('screen-pin')" class="btn bg-purple-500 text-white text-lg font-bold py-4 rounded-2xl flex flex-col items-center justify-center">
+                    <span class="text-2xl mb-1">👨‍👩‍👧</span> Parents
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen: Study Room (Learn Mode) -->
+    <div id="screen-study" class="screen max-w-md mx-auto relative bg-emerald-50 p-4">
+        <div class="flex justify-between items-center mb-2 bg-white p-3 rounded-2xl shadow-sm">
+            <button onclick="App.showScreen('screen-home')" class="text-blue-500 font-bold text-xl px-4 py-2 bg-blue-50 rounded-xl">⬅ Back</button>
+            <h2 class="text-2xl font-bold text-emerald-800">Study Room 📚</h2>
+            <div class="w-16"></div> <!-- Spacer -->
+        </div>
+
+        <div class="flex-1 flex flex-col items-center justify-start bg-white p-4 rounded-3xl shadow-inner border-2 border-emerald-100 overflow-y-auto">
+            <p class="text-slate-500 font-bold mb-2 text-center text-sm">Type a number to see its blocks!</p>
+            
+            <div id="study-display" class="text-4xl font-black text-slate-800 bg-emerald-50 w-full text-center py-4 rounded-2xl shadow-inner tracking-widest border-2 border-emerald-200 flex items-center justify-center overflow-hidden px-2 mb-2">
+                0
+            </div>
+            
+            <div id="study-words" class="text-lg font-bold text-emerald-700 text-center mb-1 px-2 min-h-[40px] flex items-center justify-center leading-tight">
+                Zero
+            </div>
+
+            <!-- Place Value Breakdown -->
+            <div id="study-expanded" class="text-md font-bold text-orange-500 text-center mb-2 px-2 flex items-center justify-center break-words w-full">
+                0
+            </div>
+
+            <!-- NAYA FEATURE: Visual Blocks (Base-10) -->
+            <div id="study-visuals" class="flex flex-col items-center justify-center w-full min-h-[60px] bg-slate-50 rounded-xl p-2 mb-4 border border-slate-200">
+                <!-- Blocks injected here -->
+                <span class="text-slate-400 text-sm">Blocks will appear here</span>
+            </div>
+            
+            <button onclick="App.speakStudyNumber()" class="btn w-full bg-blue-100 text-blue-700 font-bold py-3 rounded-xl mb-4 text-xl shadow-sm">🔊 Listen to Number</button>
+
+            <!-- Keypad -->
+            <div class="grid grid-cols-3 gap-2 w-full max-w-[280px]">
+                <button onclick="App.studyDigit(1)" class="btn bg-white text-2xl font-bold py-3 rounded-xl shadow border border-gray-100">1</button>
+                <button onclick="App.studyDigit(2)" class="btn bg-white text-2xl font-bold py-3 rounded-xl shadow border border-gray-100">2</button>
+                <button onclick="App.studyDigit(3)" class="btn bg-white text-2xl font-bold py-3 rounded-xl shadow border border-gray-100">3</button>
+                <button onclick="App.studyDigit(4)" class="btn bg-white text-2xl font-bold py-3 rounded-xl shadow border border-gray-100">4</button>
+                <button onclick="App.studyDigit(5)" class="btn bg-white text-2xl font-bold py-3 rounded-xl shadow border border-gray-100">5</button>
+                <button onclick="App.studyDigit(6)" class="btn bg-white text-2xl font-bold py-3 rounded-xl shadow border border-gray-100">6</button>
+                <button onclick="App.studyDigit(7)" class="btn bg-white text-2xl font-bold py-3 rounded-xl shadow border border-gray-100">7</button>
+                <button onclick="App.studyDigit(8)" class="btn bg-white text-2xl font-bold py-3 rounded-xl shadow border border-gray-100">8</button>
+                <button onclick="App.studyDigit(9)" class="btn bg-white text-2xl font-bold py-3 rounded-xl shadow border border-gray-100">9</button>
+                <button onclick="App.studyClear()" class="btn bg-red-100 text-lg font-bold py-3 rounded-xl shadow text-red-600">Clear</button>
+                <button onclick="App.studyDigit(0)" class="btn bg-white text-2xl font-bold py-3 rounded-xl shadow border border-gray-100">0</button>
+                <button onclick="App.studyBackspace()" class="btn bg-orange-100 text-xl font-bold py-3 rounded-xl shadow text-orange-600">⌫</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen: Levels Map -->
+    <div id="screen-levels" class="screen max-w-md mx-auto relative bg-blue-50 p-4">
+        <div class="flex justify-between items-center mb-4 bg-white p-3 rounded-2xl shadow-sm">
+            <button onclick="App.showScreen('screen-home')" class="text-blue-500 font-bold text-xl px-4 py-2 bg-blue-50 rounded-xl">⬅ Back</button>
+            <h2 class="text-2xl font-bold text-blue-800">Level Map</h2>
+            <div class="w-16"></div>
+        </div>
+
+        <div class="flex justify-between items-center mb-4">
+            <button onclick="App.changeLevelPage(-1)" id="btn-prev-page" class="btn bg-white text-blue-600 font-bold px-4 py-2 rounded-xl shadow">◀ Prev</button>
+            <span class="font-bold text-slate-600">Page <span id="level-page-display">1</span>/30</span>
+            <button onclick="App.changeLevelPage(1)" id="btn-next-page" class="btn bg-white text-blue-600 font-bold px-4 py-2 rounded-xl shadow">Next ▶</button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto bg-white p-4 rounded-3xl shadow-inner border-2 border-blue-100">
+            <div id="levels-grid" class="grid grid-cols-4 gap-3">
+                <!-- Level buttons injected here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen: Main Game Flow -->
+    <div id="screen-game" class="screen max-w-md mx-auto relative bg-blue-50">
+        <!-- Top Bar -->
+        <div class="flex justify-between items-center p-4 bg-white shadow-sm z-10">
+            <button onclick="App.quitGame()" class="text-red-500 font-bold text-xl bg-red-50 px-3 py-1 rounded-lg">✖ Quit</button>
+            
+            <!-- Standard Progress Bar -->
+            <div class="flex space-x-2" id="progress-bar-container"></div>
+            
+            <!-- Time Attack Timer (Hidden naturally) -->
+            <div id="timer-container" class="hidden flex items-center bg-slate-100 px-3 py-1 rounded-xl">
+                <span class="text-2xl mr-2">⏱️</span>
+                <span id="time-attack-clock" class="text-xl font-bold text-slate-700">60s</span>
+            </div>
+
+            <div class="font-bold text-yellow-500 text-xl">⭐ <span id="game-stars">0</span></div>
+        </div>
+
+        <!-- Game Container -->
+        <div id="game-container" class="flex-1 flex flex-col p-4 relative overflow-hidden justify-center items-center">
+            
+            <!-- Mode 1: Write Number (Drawing Canvas for 1-99) -->
+            <div id="mode-write" class="w-full hidden flex-col items-center h-full">
+                <div class="text-2xl font-bold mb-2 text-center text-blue-700" id="write-prompt">Write the number!</div>
+                <button onclick="App.speakCurrentPrompt()" class="btn bg-blue-100 p-3 rounded-full mb-4 text-2xl">🔊</button>
+                
+                <div class="relative w-full h-[280px] sm:h-[350px] flex-none flex justify-center items-center bg-white border-4 border-blue-300 rounded-3xl overflow-hidden shadow-inner my-2" id="canvas-container">
+                    <div id="write-ghost" class="ghost-number flex items-center justify-center w-full h-full">47</div>
+                    <canvas id="drawing-board" class="absolute inset-0 w-full h-full touch-none"></canvas>
+                </div>
+                
+                <div class="flex w-full space-x-4 mt-6">
+                    <button onclick="App.clearCanvas()" class="btn flex-1 bg-red-400 text-white font-bold py-4 rounded-2xl text-xl">Clear 🧹</button>
+                    <button onclick="App.checkHandwriting()" class="btn flex-1 bg-green-500 text-white font-bold py-4 rounded-2xl text-xl">Done! ✔️</button>
+                </div>
+            </div>
+
+            <!-- Mode 2: Type Number (Keypad for 100 - 10,000) -->
+            <div id="mode-type" class="w-full hidden flex-col items-center">
+                <div class="text-2xl font-bold mb-2 text-center text-blue-700">Type the number!</div>
+                <button onclick="App.speakCurrentPrompt()" class="btn bg-blue-100 p-3 rounded-full mb-2 text-2xl">🔊</button>
+                <div id="type-words" class="text-xl font-bold text-slate-600 text-center mb-4 px-2 h-16 flex items-center justify-center leading-tight">Ten Thousand</div>
+                <div id="type-display" class="text-4xl font-black text-slate-800 mb-6 bg-white w-full text-center py-4 rounded-xl shadow-inner tracking-widest border-2 border-slate-200 min-h-[70px] flex items-center justify-center overflow-hidden px-2"></div>
+                
+                <div class="grid grid-cols-3 gap-3 w-full max-w-[300px]">
+                    <button onclick="App.typeDigit(1)" class="btn bg-white text-3xl font-bold py-3 rounded-xl shadow">1</button>
+                    <button onclick="App.typeDigit(2)" class="btn bg-white text-3xl font-bold py-3 rounded-xl shadow">2</button>
+                    <button onclick="App.typeDigit(3)" class="btn bg-white text-3xl font-bold py-3 rounded-xl shadow">3</button>
+                    <button onclick="App.typeDigit(4)" class="btn bg-white text-3xl font-bold py-3 rounded-xl shadow">4</button>
+                    <button onclick="App.typeDigit(5)" class="btn bg-white text-3xl font-bold py-3 rounded-xl shadow">5</button>
+                    <button onclick="App.typeDigit(6)" class="btn bg-white text-3xl font-bold py-3 rounded-xl shadow">6</button>
+                    <button onclick="App.typeDigit(7)" class="btn bg-white text-3xl font-bold py-3 rounded-xl shadow">7</button>
+                    <button onclick="App.typeDigit(8)" class="btn bg-white text-3xl font-bold py-3 rounded-xl shadow">8</button>
+                    <button onclick="App.typeDigit(9)" class="btn bg-white text-3xl font-bold py-3 rounded-xl shadow">9</button>
+                    <button onclick="App.typeBackspace()" class="btn bg-red-100 text-2xl font-bold py-3 rounded-xl shadow text-red-600">⌫</button>
+                    <button onclick="App.typeDigit(0)" class="btn bg-white text-3xl font-bold py-3 rounded-xl shadow">0</button>
+                    <button onclick="App.checkType()" class="btn bg-green-500 text-2xl font-bold py-3 rounded-xl shadow text-white">✔</button>
+                </div>
+            </div>
+
+            <!-- Mode 3: Multiple Choice -->
+            <div id="mode-choice" class="w-full hidden flex-col items-center">
+                <div class="text-2xl font-bold mb-6 text-center text-blue-700" id="choice-prompt">What number is this?</div>
+                <button onclick="App.speakCurrentPrompt()" class="btn bg-blue-100 p-3 rounded-full mb-6 text-2xl">🔊</button>
+                <div class="text-7xl font-black text-slate-800 mb-10 drop-shadow-md text-center" id="choice-target">72</div>
+                <div class="grid grid-cols-2 gap-4 w-full" id="choice-options"></div>
+            </div>
+
+            <!-- Mode 4: Missing Number -->
+            <div id="mode-missing" class="w-full hidden flex-col items-center">
+                <div class="text-2xl font-bold mb-10 text-center text-purple-700">Find the missing number!</div>
+                <div class="flex justify-center items-center space-x-1 w-full mb-12 text-3xl font-bold" id="missing-sequence"></div>
+                <div class="grid grid-cols-3 gap-3 w-full" id="missing-options"></div>
+            </div>
+
+            <!-- Mode 5: Ordering -->
+            <div id="mode-order" class="w-full hidden flex-col items-center">
+                <div class="text-2xl font-bold mb-6 text-center text-orange-600">Tap to put in order!</div>
+                <div class="flex justify-around w-full mb-8 h-24 items-center bg-white rounded-2xl shadow-inner drop-zone p-2 space-x-2" id="order-dropzone"></div>
+                <div class="flex justify-around w-full h-24 items-center space-x-2" id="order-source"></div>
+                <button onclick="App.checkOrder()" class="btn w-full bg-green-500 text-white font-bold py-4 rounded-2xl text-xl mt-8">Check! ✔️</button>
+            </div>
+
+            <!-- Mode 6: Counting -->
+            <div id="mode-count" class="w-full hidden flex-col items-center">
+                <div class="text-2xl font-bold mb-6 text-center text-green-700">How many are there?</div>
+                <div class="flex flex-wrap justify-center gap-4 mb-10 text-5xl bg-white p-6 rounded-3xl shadow-inner min-h-[200px]" id="count-items"></div>
+                <div class="grid grid-cols-3 gap-4 w-full" id="count-options"></div>
+            </div>
+
+            <!-- NAYA FEATURE: Mode 7: Compare (Bada/Chhota) -->
+            <div id="mode-compare" class="w-full hidden flex-col items-center">
+                <div class="text-2xl font-bold mb-8 text-center text-indigo-700">Which is bigger?</div>
+                
+                <div class="flex justify-between items-center w-full mb-12 bg-white rounded-3xl shadow-md p-6 border-2 border-indigo-100">
+                    <div id="compare-num1" class="text-4xl sm:text-5xl font-black text-slate-800">45</div>
+                    <div class="text-5xl text-indigo-300 font-black px-2">?</div>
+                    <div id="compare-num2" class="text-4xl sm:text-5xl font-black text-slate-800">54</div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4 w-full">
+                    <button onclick="App.checkCompare('<')" class="btn bg-indigo-100 text-indigo-700 font-bold text-5xl py-6 rounded-2xl border-4 border-indigo-200 hover:bg-indigo-200">&lt;</button>
+                    <button onclick="App.checkCompare('=')" class="btn bg-gray-100 text-gray-700 font-bold text-5xl py-6 rounded-2xl border-4 border-gray-200 hover:bg-gray-200">=</button>
+                    <button onclick="App.checkCompare('>')" class="btn bg-indigo-100 text-indigo-700 font-bold text-5xl py-6 rounded-2xl border-4 border-indigo-200 hover:bg-indigo-200">&gt;</button>
+                </div>
+            </div>
+
+            <!-- NAYA FEATURE: Mode 8: Even / Odd (Sam / Visham) -->
+            <div id="mode-evenodd" class="w-full hidden flex-col items-center">
+                <div class="text-2xl font-bold mb-6 text-center text-pink-600">Even or Odd?</div>
+                
+                <div id="evenodd-target" class="text-7xl font-black text-slate-800 mb-12 bg-white w-full text-center py-10 rounded-3xl shadow-md border-4 border-pink-100">
+                    84
+                </div>
+
+                <div class="flex space-x-4 w-full">
+                    <button onclick="App.checkEvenOdd('even')" class="btn flex-1 bg-cyan-400 text-white font-bold text-3xl py-8 rounded-3xl border-b-4 border-cyan-600 shadow-lg">EVEN<br><span class="text-sm font-normal text-cyan-100">(Ends in 0,2,4,6,8)</span></button>
+                    <button onclick="App.checkEvenOdd('odd')" class="btn flex-1 bg-pink-500 text-white font-bold text-3xl py-8 rounded-3xl border-b-4 border-pink-700 shadow-lg">ODD<br><span class="text-sm font-normal text-pink-200">(Ends in 1,3,5,7,9)</span></button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Screen: PIN Prompt -->
+    <div id="screen-pin" class="screen max-w-md mx-auto relative bg-slate-800 p-6">
+        <div class="flex-1 flex flex-col items-center justify-center space-y-8">
+            <h2 class="text-3xl font-bold text-white text-center">Parents Only</h2>
+            <p class="text-slate-400 text-center">Enter PIN to access settings.</p>
+            <div class="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl">
+                <div id="pin-display" class="text-4xl font-mono text-center tracking-[0.5em] text-slate-800 mb-6 h-12 border-b-2 border-slate-200 flex items-center justify-center"></div>
+                <div class="grid grid-cols-3 gap-3">
+                    <button onclick="App.pinDigit(1)" class="btn bg-slate-100 text-2xl font-bold py-3 rounded-xl shadow-sm">1</button>
+                    <button onclick="App.pinDigit(2)" class="btn bg-slate-100 text-2xl font-bold py-3 rounded-xl shadow-sm">2</button>
+                    <button onclick="App.pinDigit(3)" class="btn bg-slate-100 text-2xl font-bold py-3 rounded-xl shadow-sm">3</button>
+                    <button onclick="App.pinDigit(4)" class="btn bg-slate-100 text-2xl font-bold py-3 rounded-xl shadow-sm">4</button>
+                    <button onclick="App.pinDigit(5)" class="btn bg-slate-100 text-2xl font-bold py-3 rounded-xl shadow-sm">5</button>
+                    <button onclick="App.pinDigit(6)" class="btn bg-slate-100 text-2xl font-bold py-3 rounded-xl shadow-sm">6</button>
+                    <button onclick="App.pinDigit(7)" class="btn bg-slate-100 text-2xl font-bold py-3 rounded-xl shadow-sm">7</button>
+                    <button onclick="App.pinDigit(8)" class="btn bg-slate-100 text-2xl font-bold py-3 rounded-xl shadow-sm">8</button>
+                    <button onclick="App.pinDigit(9)" class="btn bg-slate-100 text-2xl font-bold py-3 rounded-xl shadow-sm">9</button>
+                    <button onclick="App.showScreen('screen-home')" class="btn bg-red-100 text-red-600 text-lg font-bold py-3 rounded-xl shadow-sm">Back</button>
+                    <button onclick="App.pinDigit(0)" class="btn bg-slate-100 text-2xl font-bold py-3 rounded-xl shadow-sm">0</button>
+                    <button onclick="App.pinBackspace()" class="btn bg-orange-100 text-orange-600 text-2xl font-bold py-3 rounded-xl shadow-sm">⌫</button>
+                </div>
+            </div>
+            <p class="text-slate-500 text-sm">Default PIN is 1234</p>
+        </div>
+    </div>
+
+    <!-- Screen: Parent Dashboard -->
+    <div id="screen-parent" class="screen max-w-md mx-auto relative bg-slate-50 p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-800">Mata-Pita Dashboard</h2>
+            <button onclick="App.showScreen('screen-home')" class="text-blue-500 font-bold bg-blue-100 px-4 py-2 rounded-xl">Back</button>
+        </div>
+        
+        <div class="bg-white p-4 rounded-2xl shadow-sm mb-4 border-2 border-indigo-100">
+            <h3 class="font-bold text-lg mb-2 text-indigo-700">📊 Overall Progress</h3>
+            <div class="flex justify-between text-sm mb-1"><span>Current Level</span><span id="stat-level" class="font-bold text-purple-600">Level 1 / 3000</span></div>
+            <div class="flex justify-between text-sm mb-1"><span>Numbers Mastered</span><span id="stat-mastered" class="font-bold text-green-600">0</span></div>
+            
+            <div class="flex justify-between text-sm mb-1 mt-3"><span>Accuracy</span><span id="stat-accuracy" class="font-bold text-blue-600">0%</span></div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5"><div id="bar-accuracy" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div></div>
+        </div>
+
+        <!-- Deep Analysis Section -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm mb-4 border-2 border-red-100">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-bold text-lg text-red-600">🧠 Deep Analysis (Kamzori)</h3>
+            </div>
+            <div id="weak-concepts-list" class="text-sm text-slate-600 mb-2 p-3 bg-red-50 rounded-xl border border-red-100 italic">
+                Data collect ho raha hai... (Abhi koi weakness nahi mili)
+            </div>
+        </div>
+
+        <!-- Time Attack Analysis Section -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm mb-4 border-2 border-yellow-100">
+            <h3 class="font-bold text-lg mb-2 text-yellow-600">⏱️ Time Attack Analysis</h3>
+            <div class="grid grid-cols-2 gap-2 text-center">
+                <div class="bg-yellow-50 p-2 rounded-xl">
+                    <div class="text-xs text-slate-500 font-bold">Games Played</div>
+                    <div id="stat-ta-games" class="text-xl font-black text-yellow-700">0</div>
+                </div>
+                <div class="bg-yellow-50 p-2 rounded-xl">
+                    <div class="text-xs text-slate-500 font-bold">High Score</div>
+                    <div id="stat-ta-high" class="text-xl font-black text-yellow-700">0</div>
+                </div>
+                <div class="bg-yellow-50 p-2 rounded-xl col-span-2">
+                    <div class="text-xs text-slate-500 font-bold">Average Score (Speed)</div>
+                    <div id="stat-ta-avg" class="text-lg font-black text-yellow-700">0 points/game</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm mb-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg text-slate-700">📋 Har Number Ki Galti</h3>
+                <button onclick="App.generateReport()" class="bg-indigo-100 text-indigo-700 px-3 py-2 rounded-xl text-sm font-bold shadow-sm active:scale-95 transition-transform flex items-center">
+                    <span>📄 Download PDF Report</span>
+                </button>
+            </div>
+            
+            <div class="max-h-60 overflow-y-auto border border-gray-100 rounded-xl">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 sticky top-0 shadow-sm">
+                        <tr>
+                            <th class="p-3 text-sm font-bold text-slate-600 border-b">Number</th>
+                            <th class="p-3 text-sm font-bold text-red-500 border-b text-center">Wrong ❌</th>
+                            <th class="p-3 text-sm font-bold text-green-500 border-b text-center">Right ✅</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailed-stats-list" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm">
+            <h3 class="font-bold text-lg mb-4 text-slate-700">⚙️ Settings</h3>
+            <label class="flex items-center space-x-3 mb-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                <input type="checkbox" id="setting-voice" checked class="w-6 h-6 text-blue-600 rounded" onchange="App.saveSettings()">
+                <span class="text-slate-700 font-bold text-lg">Voice Guidance</span>
+            </label>
+            <label class="flex items-center space-x-3 mb-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                <input type="checkbox" id="setting-dyslexia" class="w-6 h-6 text-blue-600 rounded" onchange="App.saveSettings()">
+                <span class="text-slate-700 font-bold text-lg">Dyslexia-friendly Font</span>
+            </label>
+            <button onclick="App.confirmReset()" class="w-full mt-4 bg-red-100 text-red-600 font-bold py-4 rounded-xl text-lg">Reset All Data</button>
+        </div>
+    </div>
+
+    <!-- Screen: Rewards -->
+    <div id="screen-rewards" class="screen max-w-md mx-auto relative bg-yellow-50 p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-yellow-800">Trophy Room 🏆</h2>
+            <button onclick="App.showScreen('screen-home')" class="text-blue-500 font-bold bg-blue-100 px-4 py-2 rounded-xl">Back</button>
+        </div>
+        <div class="grid grid-cols-2 gap-4" id="achievements-list"></div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-overlay" class="fixed inset-0 hidden items-center justify-center z-50 overlay-bg">
+        <div id="modal-content" class="bg-white p-6 rounded-3xl shadow-2xl max-w-xs w-full text-center anim-bounce-in">
+            <div id="modal-icon" class="text-6xl mb-4">⭐</div>
+            <h3 id="modal-title" class="text-2xl font-bold mb-2">Excellent!</h3>
+            <p id="modal-text" class="text-gray-600 mb-6 text-lg">You earned coins.</p>
+            <button onclick="App.closeModal()" id="modal-btn" class="btn w-full bg-blue-500 text-white font-bold py-4 rounded-2xl text-xl">Next ▶</button>
+        </div>
+    </div>
+
+    <div id="modal-confirm" class="fixed inset-0 hidden items-center justify-center z-50 overlay-bg">
+        <div class="bg-white p-6 rounded-3xl shadow-2xl max-w-xs w-full text-center anim-bounce-in border-4 border-red-200">
+            <div class="text-5xl mb-4">⚠️</div>
+            <h3 class="text-2xl font-bold text-slate-800 mb-2">Are you sure?</h3>
+            <p class="text-slate-600 mb-6 text-md">This will delete all progress and reset the app back to Level 1. This cannot be undone.</p>
+            <div class="flex space-x-3">
+                <button onclick="App.closeConfirm()" class="btn flex-1 bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-lg">Cancel</button>
+                <button onclick="App.executeReset()" class="btn flex-1 bg-red-500 text-white font-bold py-3 rounded-xl text-lg">Reset App</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAYA FEATURE: Install App Modal -->
+    <div id="install-modal" class="fixed inset-0 hidden items-center justify-center z-50 overlay-bg">
+        <div class="bg-white p-6 rounded-3xl shadow-2xl max-w-xs w-full text-center anim-bounce-in border-4 border-blue-200">
+            <div class="text-5xl mb-4">📱</div>
+            <h3 class="text-2xl font-bold text-blue-700 mb-2">App Install Karein!</h3>
+            <p class="text-slate-600 mb-6 text-md font-bold">Bina internet ke daily practice ke liye is App ko apne phone me install karein.</p>
+            <div class="flex space-x-3">
+                <button onclick="App.closeInstallModal()" class="btn flex-1 bg-slate-100 text-slate-500 font-bold py-3 rounded-xl text-md">Baad Me</button>
+                <button onclick="App.installApp()" class="btn flex-1 bg-blue-500 text-white font-bold py-3 rounded-xl text-lg">Install ✅</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-40 hidden"></canvas>
+
+    <script>
+        /**
+         * NUMBER HERO ACADEMY
+         * Complete Offline App for mastering numbers 1 - 10,000 across 3000 levels.
+         * Now includes: Compare, Even/Odd, Base-10 Blocks, and Time Attack!
+         */
+
+        const setupPWA = () => {
+            try {
+                const manifest = {
+                    name: "Number Hero Academy", short_name: "NumberHero", start_url: "./", display: "standalone",
+                    background_color: "#EFF6FF", theme_color: "#3B82F6",
+                    icons: [{ src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%233B82F6' rx='20'/%3E%3Ctext x='50' y='65' font-size='50' fill='white' text-anchor='middle' font-family='sans-serif' font-weight='bold'%3E7%3C/text%3E%3C/svg%3E", sizes: "192x192", type: "image/svg+xml" }]
+                };
+                const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+                const manifestUrl = URL.createObjectURL(manifestBlob);
+                document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestUrl}">`);
+
+                const swCode = `
+                    const CACHE_NAME = 'number-hero-v5';
+                    self.addEventListener('install', event => {
+                        event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll([location.href])));
+                        self.skipWaiting();
+                    });
+                    self.addEventListener('fetch', event => {
+                        event.respondWith(caches.match(event.request).then(response => response || fetch(event.request)));
+                    });
+                `;
+                const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                
+                if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
+                    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(console.warn);
+                }
+            } catch(e) { console.warn("PWA setup bypassed."); }
+        };
+
+        class DB {
+            constructor() {
+                this.dbName = 'NumberHeroDB';
+                this.version = 1;
+                this.db = null;
+            }
+            async init() {
+                return new Promise((resolve, reject) => {
+                    const req = indexedDB.open(this.dbName, this.version);
+                    req.onupgradeneeded = (e) => {
+                        let db = e.target.result;
+                        if (!db.objectStoreNames.contains('stats')) db.createObjectStore('stats', { keyPath: 'number' });
+                        if (!db.objectStoreNames.contains('user')) db.createObjectStore('user', { keyPath: 'id' });
+                    };
+                    req.onsuccess = (e) => { this.db = e.target.result; resolve(); };
+                    req.onerror = (e) => reject(e.target.error);
+                });
+            }
+            async get(storeName, key) {
+                return new Promise((resolve) => {
+                    const req = this.db.transaction(storeName, 'readonly').objectStore(storeName).get(key);
+                    req.onsuccess = () => resolve(req.result);
+                });
+            }
+            async put(storeName, data) {
+                return new Promise((resolve) => {
+                    const req = this.db.transaction(storeName, 'readwrite').objectStore(storeName).put(data);
+                    req.onsuccess = () => resolve();
+                });
+            }
+            async getAll(storeName) {
+                return new Promise((resolve) => {
+                    const req = this.db.transaction(storeName, 'readonly').objectStore(storeName).getAll();
+                    req.onsuccess = () => resolve(req.result);
+                });
+            }
+            async clear(storeName) {
+                return new Promise((resolve) => {
+                    const req = this.db.transaction(storeName, 'readwrite').objectStore(storeName).clear();
+                    req.onsuccess = () => resolve();
+                });
+            }
+        }
+
+        class SRS {
+            static getNextReviewTime(stage) {
+                const delays = [0, 5*60*1000, 60*60*1000, 24*60*60*1000, 3*24*60*60*1000, 7*24*60*60*1000, 14*24*60*60*1000];
+                return Date.now() + (delays[stage] || delays[delays.length-1]);
+            }
+        }
+
+        class Confetti {
+            constructor() {
+                this.canvas = document.getElementById('confetti-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.colors = ['#facc15', '#f43f5e', '#3b82f6', '#10b981', '#a855f7'];
+                this.animationId = null;
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+            }
+            resize() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; }
+            fire() {
+                this.canvas.classList.remove('hidden');
+                for(let i=0; i<100; i++) {
+                    this.particles.push({
+                        x: this.canvas.width / 2, y: this.canvas.height / 2 + 100,
+                        r: Math.random() * 6 + 4,
+                        dx: Math.random() * 20 - 10, dy: Math.random() * -20 - 5,
+                        color: this.colors[Math.floor(Math.random() * this.colors.length)],
+                        tilt: Math.random() * 10, tiltAngle: 0, tiltAngleInc: (Math.random() * 0.07) + 0.05
+                    });
+                }
+                if(!this.animationId) this.animate();
+                setTimeout(() => this.stop(), 3000);
+            }
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.particles.forEach((p, i) => {
+                    p.tiltAngle += p.tiltAngleInc;
+                    p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2;
+                    p.x += Math.sin(p.tiltAngle) * 2;
+                    p.dy += 0.2; 
+                    p.x += p.dx; p.y += p.dy;
+                    this.ctx.beginPath();
+                    this.ctx.lineWidth = p.r;
+                    this.ctx.strokeStyle = p.color;
+                    this.ctx.moveTo(p.x + p.tilt + p.r, p.y);
+                    this.ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+                    this.ctx.stroke();
+                });
+                this.particles = this.particles.filter(p => p.y < this.canvas.height + 100);
+                if (this.particles.length > 0) this.animationId = requestAnimationFrame(() => this.animate());
+                else { cancelAnimationFrame(this.animationId); this.animationId = null; this.canvas.classList.add('hidden'); }
+            }
+            stop() { this.particles = []; }
+        }
+
+        const App = {
+            db: new DB(),
+            confetti: null,
+            user: { id: 'main', stars: 0, coins: 0, streak: 0, lastPlayed: 0, maxLevel: 1, level: 1, voice: true, dyslexia: false, taGames: 0, taHighScore: 0, taTotalScore: 0 },
+            stats: [], 
+            currentLesson: [],
+            lessonProgress: 0,
+            currentGame: null,
+            audioCtx: null,
+            currentLevelPage: 0,
+            studyValue: "",
+            pinValue: "",
+            deferredPrompt: null, // Install prompt ke liye
+            
+            // Drawing state
+            canvas: null, ctx: null, isDrawing: false, lastX: 0, lastY: 0,
+
+            // Time Attack state
+            isTimeAttack: false,
+            taTimeLeft: 0,
+            taScore: 0,
+            taInterval: null,
+
+            async init() {
+                setupPWA();
+                await this.db.init();
+                this.confetti = new Confetti();
+                await this.loadData();
+                this.setupCanvasListeners();
+                
+                // Install Prompt Handler
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    this.deferredPrompt = e;
+                    // App load hone ke 3 second baad Install modal show karega
+                    setTimeout(() => {
+                        document.getElementById('install-modal').classList.remove('hidden');
+                        document.getElementById('install-modal').classList.add('flex');
+                    }, 3000);
+                });
+            },
+
+            closeInstallModal() {
+                document.getElementById('install-modal').classList.add('hidden');
+                document.getElementById('install-modal').classList.remove('flex');
+            },
+
+            async installApp() {
+                this.closeInstallModal();
+                if (this.deferredPrompt) {
+                    this.deferredPrompt.prompt();
+                    const { outcome } = await this.deferredPrompt.userChoice;
+                    console.log(`User response to the install prompt: ${outcome}`);
+                    this.deferredPrompt = null;
+                }
+            },
+
+            async loadData() {
+                let u = await this.db.get('user', 'main');
+                if (u) {
+                    this.user = { ...this.user, ...u }; 
+                    if(!this.user.maxLevel) this.user.maxLevel = this.user.level || 1;
+                    if(this.user.coins === undefined) this.user.coins = 0;
+                    if(this.user.taGames === undefined) this.user.taGames = 0;
+                    if(this.user.taHighScore === undefined) this.user.taHighScore = 0;
+                    if(this.user.taTotalScore === undefined) this.user.taTotalScore = 0;
+                } else {
+                    await this.db.put('user', this.user);
+                }
+
+                this.stats = await this.db.getAll('stats');
+                this.updateHomeUI();
+                
+                document.getElementById('setting-voice').checked = this.user.voice;
+                document.getElementById('setting-dyslexia').checked = this.user.dyslexia;
+                this.toggleDyslexiaFont(this.user.dyslexia);
+            },
+
+            async saveData() {
+                await this.db.put('user', this.user);
+            },
+
+            async updateNumberStat(num, correct, mode) {
+                let stat = this.stats.find(s => s.number === num);
+                if (!stat) {
+                    stat = { number: num, correctCount: 0, wrongCount: 0, stage: 0, nextReview: 0, modeErrors: {} };
+                    this.stats.push(stat);
+                }
+                
+                if (!stat.modeErrors) stat.modeErrors = {}; // Fallback for old data
+
+                if (correct) {
+                    stat.correctCount++;
+                    stat.stage = Math.min(stat.stage + 1, 6);
+                } else {
+                    stat.wrongCount++;
+                    stat.stage = Math.max(0, stat.stage - 2); 
+                    
+                    // Kis game mode me galti hui, wo save karo (Kamzori pakadne ke liye)
+                    if(mode) {
+                        stat.modeErrors[mode] = (stat.modeErrors[mode] || 0) + 1;
+                    }
+                }
+                stat.nextReview = SRS.getNextReviewTime(stat.stage);
+                await this.db.put('stats', stat);
+            },
+
+            updateHomeUI() {
+                document.getElementById('home-stars').innerText = this.user.stars;
+                document.getElementById('home-coins').innerText = this.user.coins;
+                document.getElementById('home-streak').innerText = this.user.streak;
+                document.getElementById('home-level').innerText = this.user.maxLevel;
+                document.getElementById('btn-play').innerText = `PLAY LEVEL ${this.user.maxLevel} 🚀`;
+            },
+
+            showScreen(id) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+                
+                if(id === 'screen-parent') this.renderParentDashboard();
+                if(id === 'screen-rewards') this.renderRewards();
+                if(id === 'screen-study') this.updateStudyDisplay();
+                if(id === 'screen-pin') {
+                    this.pinValue = "";
+                    document.getElementById('pin-display').innerText = "";
+                }
+                if(id === 'screen-levels') {
+                    this.currentLevelPage = Math.floor((this.user.maxLevel - 1) / 100);
+                    this.renderLevelSelect();
+                }
+            },
+
+            pinDigit(d) {
+                if(this.pinValue.length < 4) {
+                    this.pinValue += d;
+                    document.getElementById('pin-display').innerText = '*'.repeat(this.pinValue.length);
+                    
+                    if(this.pinValue.length === 4) {
+                        setTimeout(() => this.verifyPin(), 200);
+                    }
+                }
+            },
+            
+            pinBackspace() {
+                this.pinValue = this.pinValue.slice(0, -1);
+                document.getElementById('pin-display').innerText = '*'.repeat(this.pinValue.length);
+            },
+            
+            verifyPin() {
+                if(this.pinValue === "1234") {
+                    this.showScreen('screen-parent');
+                } else {
+                    document.getElementById('pin-display').classList.add('text-red-500');
+                    this.playSound('error');
+                    setTimeout(() => {
+                        this.pinValue = "";
+                        document.getElementById('pin-display').innerText = "";
+                        document.getElementById('pin-display').classList.remove('text-red-500');
+                    }, 500);
+                }
+            },
+
+            studyDigit(d) {
+                if(this.studyValue.length < 5) {
+                    if (this.studyValue === "0") this.studyValue = d.toString();
+                    else this.studyValue += d;
+                    this.updateStudyDisplay();
+                }
+            },
+            studyBackspace() {
+                this.studyValue = this.studyValue.slice(0, -1);
+                this.updateStudyDisplay();
+            },
+            studyClear() {
+                this.studyValue = "";
+                this.updateStudyDisplay();
+            },
+            updateStudyDisplay() {
+                const valStr = this.studyValue || "0";
+                const num = parseInt(valStr);
+                
+                document.getElementById('study-display').innerText = num.toLocaleString('en-IN');
+                document.getElementById('study-words').innerText = this.numberToWordsIN(num);
+                
+                // Build Expanded Form
+                if (num === 0) {
+                    document.getElementById('study-expanded').innerText = "0";
+                    document.getElementById('study-visuals').innerHTML = '<span class="text-slate-400 text-sm">Type a number to see blocks!</span>';
+                } else {
+                    let expandedParts = [];
+                    let numStr = num.toString();
+                    let len = numStr.length;
+                    for (let i = 0; i < len; i++) {
+                        let digit = parseInt(numStr[i]);
+                        if (digit !== 0) {
+                            let multiplier = Math.pow(10, len - i - 1);
+                            expandedParts.push((digit * multiplier).toLocaleString('en-IN'));
+                        }
+                    }
+                    document.getElementById('study-expanded').innerText = expandedParts.join(" + ");
+
+                    // Build Visual Base-10 Blocks
+                    let visualHtml = `<div class="flex flex-wrap justify-center gap-3">`;
+                    if(num <= 9999) {
+                        const paddedStr = numStr.padStart(4, '0');
+                        const th = parseInt(paddedStr.charAt(0));
+                        const h = parseInt(paddedStr.charAt(1));
+                        const t = parseInt(paddedStr.charAt(2));
+                        const o = parseInt(paddedStr.charAt(3));
+                        
+                        if(th > 0) visualHtml += `<div class="flex flex-col items-center"><div class="text-3xl leading-none" style="letter-spacing:-4px;">${'🧊'.repeat(th)}</div><span class="text-xs font-bold text-slate-400 mt-1">1000s</span></div>`;
+                        if(h > 0) visualHtml += `<div class="flex flex-col items-center"><div class="text-3xl leading-none" style="letter-spacing:-4px;">${'🟦'.repeat(h)}</div><span class="text-xs font-bold text-slate-400 mt-1">100s</span></div>`;
+                        if(t > 0) visualHtml += `<div class="flex flex-col items-center"><div class="text-3xl leading-none" style="letter-spacing:-4px;">${'🟩'.repeat(t)}</div><span class="text-xs font-bold text-slate-400 mt-1">10s</span></div>`;
+                        if(o > 0) visualHtml += `<div class="flex flex-col items-center"><div class="text-3xl leading-none" style="letter-spacing:-4px;">${'🔴'.repeat(o)}</div><span class="text-xs font-bold text-slate-400 mt-1">1s</span></div>`;
+                    } else {
+                        visualHtml = `<span class="text-slate-400 font-bold">Too big for blocks! 🤯</span>`;
+                    }
+                    visualHtml += `</div>`;
+                    document.getElementById('study-visuals').innerHTML = visualHtml;
+                }
+            },
+            speakStudyNumber() {
+                if (!this.studyValue && this.studyValue !== "0") return;
+                const num = parseInt(this.studyValue || "0");
+                const text = this.numberToWordsIN(num);
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.8; 
+                speechSynthesis.speak(utterance);
+            },
+
+            getRangeForLevel(lvl) {
+                let min, max;
+                if (lvl <= 100) { min = 1; max = Math.max(10, lvl); }
+                else if (lvl <= 1000) { min = 100; max = 100 + Math.floor((lvl - 100) * 1); }
+                else if (lvl <= 2000) { min = 1000; max = 1000 + Math.floor((lvl - 1000) * 4); }
+                else { min = 5000; max = 5000 + Math.floor((lvl - 2000) * 5); }
+
+                max = Math.min(10000, max);
+                if (min >= max) min = Math.max(1, max - 50);
+
+                return { min, max };
+            },
+
+            numberToWordsIN(num) {
+                if (num === 0) return "Zero";
+                const a = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+                const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+                const format = (n) => {
+                    if (n < 20) return a[n];
+                    if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + a[n % 10] : "");
+                    if (n < 1000) return a[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " and " + format(n % 100) : "");
+                    if (n < 100000) return format(Math.floor(n / 1000)) + " Thousand" + (n % 1000 !== 0 ? " " + format(n % 1000) : "");
+                    if (n < 10000000) return format(Math.floor(n / 100000)) + " Lakh" + (n % 100000 !== 0 ? " " + format(n % 100000) : "");
+                    return format(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 !== 0 ? " " + format(n % 10000000) : "");
+                };
+                return format(num).trim();
+            },
+
+            changeLevelPage(dir) {
+                const maxPage = 29; 
+                this.currentLevelPage += dir;
+                if (this.currentLevelPage < 0) this.currentLevelPage = 0;
+                if (this.currentLevelPage > maxPage) this.currentLevelPage = maxPage;
+                this.renderLevelSelect();
+            },
+
+            renderLevelSelect() {
+                document.getElementById('level-page-display').innerText = this.currentLevelPage + 1;
+                document.getElementById('btn-prev-page').disabled = this.currentLevelPage === 0;
+                document.getElementById('btn-next-page').disabled = this.currentLevelPage === 29;
+
+                const grid = document.getElementById('levels-grid');
+                grid.innerHTML = '';
+                
+                const startLevel = (this.currentLevelPage * 100) + 1;
+                const endLevel = startLevel + 99;
+
+                for (let i = startLevel; i <= endLevel; i++) {
+                    let btn = document.createElement('button');
+                    btn.className = "p-3 rounded-2xl font-bold text-lg flex flex-col items-center justify-center h-16 shadow-sm transition-all";
+                    
+                    if (i < this.user.maxLevel) {
+                        btn.classList.add("bg-green-100", "text-green-700", "border-2", "border-green-300");
+                        btn.innerHTML = `<span class="text-xs">⭐</span><span>${i}</span>`;
+                        btn.onclick = () => this.startLevel(i);
+                    } else if (i === this.user.maxLevel) {
+                        btn.classList.add("bg-blue-500", "text-white", "anim-pulse", "transform", "scale-105");
+                        btn.innerText = i;
+                        btn.onclick = () => this.startLevel(i);
+                    } else {
+                        btn.classList.add("bg-gray-100", "text-gray-400", "cursor-not-allowed");
+                        btn.innerHTML = `<span class="text-xs">🔒</span><span>${i}</span>`;
+                    }
+                    grid.appendChild(btn);
+                }
+            },
+
+            // --- TIME ATTACK LOGIC ---
+            startTimeAttack() {
+                this.isTimeAttack = true;
+                this.taScore = 0;
+                this.taTimeLeft = 60;
+                
+                this.showScreen('screen-game');
+                document.getElementById('progress-bar-container').classList.add('hidden');
+                document.getElementById('timer-container').classList.remove('hidden');
+                this.updateTimeAttackUI();
+                
+                if(this.taInterval) clearInterval(this.taInterval);
+                this.taInterval = setInterval(() => {
+                    this.taTimeLeft--;
+                    this.updateTimeAttackUI();
+                    if(this.taTimeLeft <= 0) this.endTimeAttack();
+                }, 1000);
+                
+                this.playNextTimeAttackTask();
+            },
+
+            updateTimeAttackUI() {
+                const clock = document.getElementById('time-attack-clock');
+                clock.innerText = `${this.taTimeLeft}s`;
+                if(this.taTimeLeft <= 10) {
+                    clock.classList.add('timer-warning');
+                } else {
+                    clock.classList.remove('timer-warning');
+                }
+            },
+
+            playNextTimeAttackTask() {
+                // Generate numbers suitable for fast play (1-1000)
+                let targetNumber = Math.floor(Math.random() * 1000) + 1;
+                let availableModes = ['choice', 'missing', 'compare', 'evenodd'];
+                let mode = availableModes[Math.floor(Math.random() * availableModes.length)];
+                
+                this.currentGame = { number: targetNumber, mode: mode };
+                this.renderGameMode(mode, targetNumber);
+            },
+
+            endTimeAttack() {
+                clearInterval(this.taInterval);
+                this.playSound('success');
+                this.confetti.fire();
+                
+                // Time Attack Analytics Save
+                this.user.taGames += 1;
+                this.user.taTotalScore += this.taScore;
+                if(this.taScore > this.user.taHighScore) {
+                    this.user.taHighScore = this.taScore;
+                }
+
+                // Give coins based on score (1 score = 2 coins)
+                let earnedCoins = this.taScore * 2;
+                this.user.coins += earnedCoins;
+                this.saveData();
+                this.updateHomeUI();
+                
+                this.showModal("Time's Up! ⏱️", `You scored ${this.taScore} points!\nEarned ${earnedCoins} Coins! 🪙`, () => {
+                    this.quitGame();
+                });
+            },
+
+            // --- NORMAL LEVEL LOGIC ---
+            startLevel(lvl) {
+                this.isTimeAttack = false;
+                document.getElementById('progress-bar-container').classList.remove('hidden');
+                document.getElementById('timer-container').classList.add('hidden');
+                
+                this.user.level = lvl; 
+                this.currentLesson = [];
+                const range = this.getRangeForLevel(lvl);
+                
+                const now = Date.now();
+                let due = this.stats.filter(s => s.nextReview <= now && s.stage < 6 && s.number <= range.max).sort((a,b) => a.nextReview - b.nextReview);
+                
+                for(let i=0; i<5; i++) {
+                    if (due.length > 0 && Math.random() > 0.4) {
+                        this.currentLesson.push(due.shift().number);
+                    } else {
+                        let n = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+                        this.currentLesson.push(n);
+                    }
+                }
+                
+                this.lessonProgress = 0;
+                this.showScreen('screen-game');
+                this.updateProgressBar();
+                document.getElementById('game-stars').innerText = this.user.stars;
+                this.playNextTask();
+            },
+
+            updateProgressBar() {
+                if(this.isTimeAttack) return;
+                const container = document.getElementById('progress-bar-container');
+                container.innerHTML = '';
+                for(let i=0; i<this.currentLesson.length; i++) {
+                    let d = document.createElement('div');
+                    d.className = `h-4 w-4 rounded-full shadow-inner ${i < this.lessonProgress ? 'bg-green-500' : 'bg-gray-200'}`;
+                    container.appendChild(d);
+                }
+            },
+
+            playNextTask() {
+                if (this.lessonProgress >= this.currentLesson.length) {
+                    this.finishLesson();
+                    return;
+                }
+                
+                const targetNumber = this.currentLesson[this.lessonProgress];
+                let availableModes = ['choice', 'missing', 'order', 'count', 'write', 'type', 'compare', 'evenodd'];
+                
+                if (targetNumber > 20) availableModes = ['choice', 'missing', 'order', 'write', 'type', 'compare', 'evenodd'];
+                if (targetNumber > 99) availableModes = ['choice', 'missing', 'type', 'compare', 'evenodd']; 
+                
+                let mode = availableModes[Math.floor(Math.random() * availableModes.length)];
+                
+                this.currentGame = { number: targetNumber, mode: mode };
+                this.renderGameMode(mode, targetNumber);
+            },
+
+            renderGameMode(mode, num) {
+                ['mode-write', 'mode-type', 'mode-choice', 'mode-missing', 'mode-order', 'mode-count', 'mode-compare', 'mode-evenodd'].forEach(id => {
+                    document.getElementById(id).classList.add('hidden');
+                });
+                
+                const modeEl = document.getElementById(`mode-${mode}`);
+                modeEl.classList.remove('hidden');
+                modeEl.classList.remove('anim-shake');
+
+                switch(mode) {
+                    case 'write': this.setupModeWrite(num); break;
+                    case 'type': this.setupModeType(num); break;
+                    case 'choice': this.setupModeChoice(num); break;
+                    case 'missing': this.setupModeMissing(num); break;
+                    case 'order': this.setupModeOrder(num); break;
+                    case 'count': this.setupModeCount(num); break;
+                    case 'compare': this.setupModeCompare(num); break;
+                    case 'evenodd': this.setupModeEvenOdd(num); break;
+                }
+                
+                if(this.user.voice && !this.isTimeAttack) {
+                    window.speechSynthesis.cancel(); 
+                    setTimeout(() => this.speakCurrentPrompt(), 50); 
+                }
+            },
+
+            // --- ALL GAME MODES SETUP ---
+            
+            // Mode 1: Write
+            setupModeWrite(num) {
+                document.getElementById('write-prompt').innerText = `Write the number!`;
+                document.getElementById('write-ghost').innerText = num;
+                
+                setTimeout(() => {
+                    this.canvas = document.getElementById('drawing-board');
+                    this.ctx = this.canvas.getContext('2d');
+                    const container = document.getElementById('canvas-container');
+                    const rect = container.getBoundingClientRect();
+                    this.canvas.width = rect.width;
+                    this.canvas.height = rect.height;
+                    this.clearCanvas();
+                }, 50); 
+            },
+
+            // Mode 2: Type
+            setupModeType(num) {
+                this.currentGame.typedValue = "";
+                document.getElementById('type-words').innerText = this.numberToWordsIN(num);
+                this.updateTypeDisplay();
+            },
+            typeDigit(d) {
+                if(this.currentGame.typedValue.length < 5) {
+                    this.currentGame.typedValue += d;
+                    this.updateTypeDisplay();
+                }
+            },
+            typeBackspace() {
+                this.currentGame.typedValue = this.currentGame.typedValue.slice(0, -1);
+                this.updateTypeDisplay();
+            },
+            updateTypeDisplay() {
+                const val = this.currentGame.typedValue;
+                document.getElementById('type-display').innerText = val ? parseInt(val).toLocaleString('en-IN') : "";
+            },
+            checkType() {
+                if (!this.currentGame.typedValue) { this.shakeError('mode-type'); return; }
+                const isCorrect = parseInt(this.currentGame.typedValue) === this.currentGame.number;
+                this.handleAnswer(isCorrect);
+            },
+
+            // Mode 3: Choice
+            setupModeChoice(num) {
+                document.getElementById('choice-target').innerText = num.toLocaleString('en-IN');
+                let opts = [num];
+                while(opts.length < 4) {
+                    let variation = Math.floor(num * 0.1) || 5;
+                    let r = Math.max(1, num + Math.floor(Math.random() * (variation * 2) - variation));
+                    if(Math.random() > 0.5) {
+                        let s = num.toString();
+                        if(s.length > 1) {
+                            r = parseInt(s.charAt(1) + s.charAt(0) + s.substring(2));
+                        }
+                    }
+                    if (!opts.includes(r)) opts.push(r);
+                }
+                opts.sort(() => Math.random() - 0.5);
+                
+                const container = document.getElementById('choice-options');
+                container.innerHTML = '';
+                opts.forEach(o => {
+                    let btn = document.createElement('button');
+                    btn.className = "btn bg-white text-blue-600 font-bold text-3xl sm:text-4xl py-8 rounded-2xl border-4 border-blue-100";
+                    btn.innerText = o.toLocaleString('en-IN');
+                    btn.onclick = () => this.handleAnswer(o === num);
+                    container.appendChild(btn);
+                });
+            },
+
+            // Mode 4: Missing Number
+            setupModeMissing(num) {
+                let step = 1;
+                if (this.user.level > 100 && Math.random() > 0.5) step = 10;
+                if (this.user.level > 500 && Math.random() > 0.6) step = 100;
+                if (this.user.level > 1500 && Math.random() > 0.7) step = 1000;
+
+                let start = num - (2 * step);
+                if (start < 1) {
+                    let remainder = (num - 1) % step;
+                    start = 1 + remainder; 
+                }
+                
+                let seq = [start, start + step, start + 2*step, start + 3*step, start + 4*step];
+                let hiddenIdx = seq.indexOf(num);
+                
+                if (hiddenIdx === -1) { 
+                    hiddenIdx = 2; 
+                    seq = [num - 2*step, num - step, num, num + step, num + 2*step];
+                    if(seq[0] < 1) {
+                        seq = [num, num + step, num + 2*step, num + 3*step, num + 4*step];
+                        hiddenIdx = 0;
+                    }
+                }
+                
+                const seqContainer = document.getElementById('missing-sequence');
+                seqContainer.innerHTML = '';
+                seq.forEach((n, i) => {
+                    let el = document.createElement('span');
+                    if (i === hiddenIdx) {
+                        el.className = "text-purple-400 border-b-4 border-purple-500 min-w-[3rem] text-center inline-block px-1 pb-1";
+                        el.innerText = "?";
+                    } else {
+                        el.className = "text-slate-700 px-1 pb-1";
+                        el.innerText = n.toLocaleString('en-IN');
+                    }
+                    seqContainer.appendChild(el);
+                });
+
+                let opts = [num];
+                while(opts.length < 3) {
+                    let r = Math.max(1, num + (Math.floor(Math.random() * 5 - 2) * step));
+                    if (!opts.includes(r) && r > 0) opts.push(r);
+                }
+                opts.sort(() => Math.random() - 0.5);
+                
+                const optsContainer = document.getElementById('missing-options');
+                optsContainer.innerHTML = '';
+                opts.forEach(o => {
+                    let btn = document.createElement('button');
+                    btn.className = "btn bg-purple-50 text-purple-700 font-bold text-2xl py-6 rounded-2xl shadow-sm border-2 border-purple-100 break-words";
+                    btn.innerText = o.toLocaleString('en-IN');
+                    btn.onclick = () => this.handleAnswer(o === num);
+                    optsContainer.appendChild(btn);
+                });
+            },
+
+            // Mode 5: Ordering
+            setupModeOrder(num) {
+                let nums = [num];
+                while(nums.length < 4) {
+                    let r = Math.max(1, num + Math.floor(Math.random() * 10 - 5));
+                    if (!nums.includes(r) && r > 0) nums.push(r);
+                }
+                this.currentGame.correctOrder = [...nums].sort((a,b)=>a-b);
+                nums.sort(() => Math.random() - 0.5);
+
+                const src = document.getElementById('order-source');
+                const drop = document.getElementById('order-dropzone');
+                src.innerHTML = ''; drop.innerHTML = '';
+
+                nums.forEach(n => {
+                    let el = document.createElement('div');
+                    el.className = "draggable bg-orange-400 text-white font-bold text-2xl sm:text-3xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center rounded-2xl shadow-lg transition-transform";
+                    el.innerText = n;
+                    el.dataset.val = n;
+                    src.appendChild(el);
+                });
+                
+                let selected = null;
+                const handleTap = (e) => {
+                    const t = e.target;
+                    if (!t.classList.contains('draggable')) return;
+                    
+                    if (!selected) {
+                        selected = t;
+                        t.classList.add('ring-4', 'ring-blue-500', 'scale-110');
+                    } else {
+                        const p1 = selected.parentNode;
+                        const p2 = t.parentNode;
+                        const sNext = selected.nextSibling;
+                        const tNext = t.nextSibling;
+                        
+                        if (p1 === p2) {
+                             p1.insertBefore(selected, tNext);
+                             p1.insertBefore(t, sNext);
+                        } else {
+                             p2.insertBefore(selected, tNext);
+                             p1.insertBefore(t, sNext);
+                        }
+                        
+                        selected.classList.remove('ring-4', 'ring-blue-500', 'scale-110');
+                        selected = null;
+                        this.playSound('click'); 
+                    }
+                };
+                
+                src.onclick = handleTap;
+                drop.onclick = handleTap;
+                
+                drop.addEventListener('click', (e) => {
+                    if (e.target === drop && selected) {
+                        drop.appendChild(selected);
+                        selected.classList.remove('ring-4', 'ring-blue-500', 'scale-110');
+                        selected = null;
+                        this.playSound('click');
+                    }
+                });
+            },
+
+            checkOrder() {
+                const drop = document.getElementById('order-dropzone');
+                const items = Array.from(drop.children);
+                if (items.length < 4) { this.shakeError('mode-order'); return; }
+                
+                let isCorrect = true;
+                items.forEach((item, i) => {
+                    if (parseInt(item.dataset.val) !== this.currentGame.correctOrder[i]) isCorrect = false;
+                });
+                this.handleAnswer(isCorrect);
+            },
+
+            // Mode 6: Counting
+            setupModeCount(num) {
+                const emojis = ['🍎', '🐶', '⭐', '🚗', '🎈', '🦋'];
+                const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+                
+                const container = document.getElementById('count-items');
+                container.innerHTML = '';
+                for(let i=0; i<num; i++) {
+                    let s = document.createElement('span');
+                    s.innerText = emoji;
+                    s.className = "anim-bounce-in";
+                    s.style.animationDelay = `${(i%10)*0.05}s`;
+                    container.appendChild(s);
+                }
+
+                let opts = [num];
+                while(opts.length < 3) {
+                    let r = Math.max(1, num + Math.floor(Math.random() * 5 - 2));
+                    if (!opts.includes(r) && r > 0) opts.push(r);
+                }
+                opts.sort(() => Math.random() - 0.5);
+                
+                const optsContainer = document.getElementById('count-options');
+                optsContainer.innerHTML = '';
+                opts.forEach(o => {
+                    let btn = document.createElement('button');
+                    btn.className = "btn bg-green-100 text-green-700 font-bold text-3xl py-6 rounded-2xl shadow-sm border-2 border-green-200";
+                    btn.innerText = o;
+                    btn.onclick = () => this.handleAnswer(o === num);
+                    optsContainer.appendChild(btn);
+                });
+            },
+
+            // Mode 7: Compare Mode
+            setupModeCompare(num) {
+                let num2;
+                let isEq = Math.random() > 0.85; // 15% chance to be equal
+                
+                if (isEq) {
+                    num2 = num;
+                } else {
+                    do {
+                        let variation = Math.floor(num * 0.2) || 5;
+                        num2 = num + Math.floor(Math.random() * variation * 2) - variation;
+                    } while(num2 < 1 || num2 === num);
+                }
+
+                // Randomize position
+                if(Math.random() > 0.5) {
+                    this.currentGame.cNum1 = num;
+                    this.currentGame.cNum2 = num2;
+                } else {
+                    this.currentGame.cNum1 = num2;
+                    this.currentGame.cNum2 = num;
+                }
+
+                document.getElementById('compare-num1').innerText = this.currentGame.cNum1.toLocaleString('en-IN');
+                document.getElementById('compare-num2').innerText = this.currentGame.cNum2.toLocaleString('en-IN');
+            },
+
+            checkCompare(ans) {
+                const n1 = this.currentGame.cNum1;
+                const n2 = this.currentGame.cNum2;
+                let correctAns = '=';
+                if(n1 > n2) correctAns = '>';
+                if(n1 < n2) correctAns = '<';
+                
+                this.handleAnswer(ans === correctAns);
+            },
+
+            // Mode 8: Even / Odd
+            setupModeEvenOdd(num) {
+                document.getElementById('evenodd-target').innerText = num.toLocaleString('en-IN');
+            },
+
+            checkEvenOdd(ans) {
+                const isEven = this.currentGame.number % 2 === 0;
+                this.handleAnswer((ans === 'even' && isEven) || (ans === 'odd' && !isEven));
+            },
+
+            // --- Universal Answer Handler ---
+            async handleAnswer(isCorrect) {
+                if (isCorrect) {
+                    this.playSound('success');
+                    
+                    if (this.isTimeAttack) {
+                        this.taScore += 1;
+                        this.taTimeLeft += 2; // Bonus Time!
+                        this.updateTimeAttackUI();
+                        
+                        // Show quick green flash
+                        document.getElementById(`mode-${this.currentGame.mode}`).classList.add('opacity-50');
+                        setTimeout(() => {
+                            document.getElementById(`mode-${this.currentGame.mode}`).classList.remove('opacity-50');
+                            this.playNextTimeAttackTask();
+                        }, 150);
+                    } else {
+                        // Normal Mode Flow
+                        this.confetti.fire();
+                        this.user.stars += 1;
+                        this.user.coins += 5;
+                        document.getElementById('game-stars').innerText = this.user.stars;
+                        await this.updateNumberStat(this.currentGame.number, true, this.currentGame.mode);
+                        
+                        let praises = ["Excellent! 🌟", "Great Job! 🎯", "Perfect! ✨", "You're a Hero! 🦸‍♀️"];
+                        let praise = praises[Math.floor(Math.random() * praises.length)];
+                        
+                        if(this.user.voice) {
+                            let u = new SpeechSynthesisUtterance("Good job!");
+                            speechSynthesis.speak(u);
+                        }
+
+                        this.showModal(praise, `You earned 5 coins!`, () => {
+                            this.lessonProgress++;
+                            this.updateProgressBar();
+                            this.playNextTask();
+                        });
+                    }
+                } else {
+                    this.playSound('error');
+                    this.shakeError(`mode-${this.currentGame.mode}`);
+                    
+                    if (this.isTimeAttack) {
+                        this.taTimeLeft = Math.max(0, this.taTimeLeft - 3); // Penalty Time
+                        this.updateTimeAttackUI();
+                        // Track Time Attack Mistakes in background too
+                        await this.updateNumberStat(this.currentGame.number, false, this.currentGame.mode);
+                    } else {
+                        await this.updateNumberStat(this.currentGame.number, false, this.currentGame.mode);
+                        if(this.currentGame.mode === 'write') this.clearCanvas();
+                        if(this.user.voice) {
+                            let phrases = ["Let's try again.", "Oops, not quite.", "Keep trying!"];
+                            let u = new SpeechSynthesisUtterance(phrases[Math.floor(Math.random() * phrases.length)]);
+                            speechSynthesis.speak(u);
+                        }
+                    }
+                }
+                this.saveData();
+            },
+
+            shakeError(elementId) {
+                const el = document.getElementById(elementId);
+                el.classList.remove('anim-shake');
+                void el.offsetWidth; 
+                el.classList.add('anim-shake');
+            },
+
+            finishLesson() {
+                this.user.streak += 1;
+                this.user.lastPlayed = Date.now();
+                
+                if(this.user.level === this.user.maxLevel && this.user.maxLevel < 3000) {
+                    this.user.maxLevel += 1;
+                }
+
+                this.saveData();
+                this.playSound('success');
+                this.confetti.fire();
+                this.updateHomeUI();
+                
+                if(this.user.voice) {
+                    let u = new SpeechSynthesisUtterance("Level complete! Awesome work!");
+                    speechSynthesis.speak(u);
+                }
+
+                this.showModal("Level Complete! 🎉", `Awesome work! You earned 50 bonus coins.`, () => {
+                    this.user.coins += 50;
+                    this.saveData();
+                    this.showScreen('screen-home');
+                });
+            },
+
+            quitGame() {
+                if(this.taInterval) clearInterval(this.taInterval);
+                this.showScreen('screen-home');
+            },
+
+            showModal(title, text, callback) {
+                document.getElementById('modal-title').innerText = title;
+                document.getElementById('modal-text').innerText = text;
+                document.getElementById('modal-overlay').classList.remove('hidden');
+                document.getElementById('modal-overlay').classList.add('flex');
+                this.modalCallback = callback;
+            },
+            
+            closeModal() {
+                document.getElementById('modal-overlay').classList.add('hidden');
+                document.getElementById('modal-overlay').classList.remove('flex');
+                if (this.modalCallback) this.modalCallback();
+            },
+
+            // --- Audio ---
+            speakCurrentPrompt() {
+                if (!this.user.voice || this.isTimeAttack) return;
+                let text = "";
+                switch(this.currentGame.mode) {
+                    case 'write': text = `Write the number ${this.currentGame.number}`; break;
+                    case 'type': text = `Type the number ${this.numberToWordsIN(this.currentGame.number)}`; break;
+                    case 'choice': text = `Which one is ${this.currentGame.number}?`; break;
+                    case 'missing': text = `Find the missing number!`; break;
+                    case 'order': text = `Put the numbers in order.`; break;
+                    case 'count': text = `How many are there?`; break;
+                    case 'compare': text = `Which number is bigger?`; break;
+                    case 'evenodd': text = `Is it Even or Odd?`; break;
+                }
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9; 
+                speechSynthesis.speak(utterance);
+            },
+
+            playSound(type) {
+                try {
+                    if (!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = this.audioCtx.createOscillator();
+                    const gainNode = this.audioCtx.createGain();
+                    osc.connect(gainNode);
+                    gainNode.connect(this.audioCtx.destination);
+                    
+                    if (type === 'success') {
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(440, this.audioCtx.currentTime);
+                        osc.frequency.exponentialRampToValueAtTime(880, this.audioCtx.currentTime + 0.1);
+                        gainNode.gain.setValueAtTime(0.5, this.audioCtx.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.5);
+                        osc.start(); osc.stop(this.audioCtx.currentTime + 0.5);
+                    } else if (type === 'error') {
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(300, this.audioCtx.currentTime);
+                        osc.frequency.exponentialRampToValueAtTime(150, this.audioCtx.currentTime + 0.2);
+                        gainNode.gain.setValueAtTime(0.5, this.audioCtx.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.2);
+                        osc.start(); osc.stop(this.audioCtx.currentTime + 0.2);
+                    } else if (type === 'click') {
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(600, this.audioCtx.currentTime);
+                        gainNode.gain.setValueAtTime(0.1, this.audioCtx.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.05);
+                        osc.start(); osc.stop(this.audioCtx.currentTime + 0.05);
+                    }
+                } catch(e) {}
+            },
+
+            setupCanvasListeners() {
+                this.canvas = document.getElementById('drawing-board');
+                
+                const startPos = (e) => {
+                    e.preventDefault();
+                    if(!this.ctx) return;
+                    this.isDrawing = true;
+                    const pos = this.getCanvasPos(e);
+                    this.lastX = pos.x; this.lastY = pos.y;
+                };
+                const draw = (e) => {
+                    if (!this.isDrawing || !this.ctx) return;
+                    e.preventDefault();
+                    const pos = this.getCanvasPos(e);
+                    
+                    this.ctx.beginPath();
+                    this.ctx.lineWidth = 18;
+                    this.ctx.lineCap = 'round';
+                    this.ctx.lineJoin = 'round';
+                    this.ctx.strokeStyle = '#2563EB'; 
+                    
+                    this.ctx.moveTo(this.lastX, this.lastY);
+                    this.ctx.lineTo(pos.x, pos.y);
+                    this.ctx.stroke();
+                    this.lastX = pos.x; this.lastY = pos.y;
+                };
+                const endPos = () => { this.isDrawing = false; };
+
+                this.canvas.addEventListener('mousedown', startPos);
+                this.canvas.addEventListener('mousemove', draw);
+                this.canvas.addEventListener('mouseup', endPos);
+                this.canvas.addEventListener('mouseout', endPos);
+                this.canvas.addEventListener('touchstart', startPos, {passive: false});
+                this.canvas.addEventListener('touchmove', draw, {passive: false});
+                this.canvas.addEventListener('touchend', endPos);
+            },
+
+            getCanvasPos(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            },
+
+            clearCanvas() {
+                if(this.ctx && this.canvas) {
+                    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                }
+            },
+
+            checkHandwriting() {
+                if(!this.ctx || !this.canvas) return;
+                
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                const userImgData = this.ctx.getImageData(0, 0, width, height).data;
+                
+                const offCanvas = document.createElement('canvas');
+                offCanvas.width = width;
+                offCanvas.height = height;
+                const offCtx = offCanvas.getContext('2d');
+                
+                offCtx.font = 'bold 140px "Comic Sans MS", "Chalkboard SE", sans-serif';
+                offCtx.textAlign = 'center';
+                offCtx.textBaseline = 'middle';
+                
+                offCtx.fillStyle = "black";
+                offCtx.fillText(this.currentGame.number.toString(), width / 2, height / 2);
+                offCtx.lineWidth = 75; 
+                offCtx.lineJoin = "round";
+                offCtx.lineCap = "round";
+                offCtx.strokeStyle = "black";
+                offCtx.strokeText(this.currentGame.number.toString(), width / 2, height / 2);
+                
+                const targetImgData = offCtx.getImageData(0, 0, width, height).data;
+                
+                let hit = 0;        
+                let miss = 0;       
+                let falseAlarm = 0; 
+
+                for(let i=3; i<userImgData.length; i+=4) {
+                    const isUserInk = userImgData[i] > 50;
+                    const isTargetInk = targetImgData[i] > 50;
+
+                    if (isTargetInk && isUserInk) hit++;
+                    else if (isTargetInk && !isUserInk) miss++;
+                    else if (!isTargetInk && isUserInk) falseAlarm++;
+                }
+                
+                const userTotal = hit + falseAlarm;
+                
+                if (userTotal < 800) {
+                    this.handleAnswer(false);
+                    return;
+                }
+
+                const coverage = hit / ((hit + miss) || 1);
+                const precision = hit / ((hit + falseAlarm) || 1);
+
+                if (coverage > 0.08 && precision > 0.50) {
+                    this.handleAnswer(true);
+                } else {
+                    this.handleAnswer(false);
+                }
+            },
+
+            renderParentDashboard() {
+                const mastered = this.stats.filter(s => s.stage >= 5).length;
+                let totalCorrect = 0, totalAttempts = 0;
+                
+                // Analytics variables
+                let modeMistakeCounts = { write: 0, type: 0, choice: 0, missing: 0, order: 0, count: 0, compare: 0, evenodd: 0 };
+                
+                this.stats.forEach(s => {
+                    totalCorrect += s.correctCount;
+                    totalAttempts += (s.correctCount + s.wrongCount);
+                    
+                    if(s.modeErrors) {
+                        for (let m in s.modeErrors) {
+                            modeMistakeCounts[m] = (modeMistakeCounts[m] || 0) + s.modeErrors[m];
+                        }
+                    }
+                });
+                
+                const acc = totalAttempts === 0 ? 0 : Math.round((totalCorrect / totalAttempts) * 100);
+                
+                document.getElementById('stat-level').innerText = `Level ${this.user.level} / 3000`;
+                document.getElementById('stat-mastered').innerText = mastered;
+                document.getElementById('stat-accuracy').innerText = `${acc}%`;
+                document.getElementById('bar-accuracy').style.width = `${acc}%`;
+
+                // Calculate Weak Concepts
+                const weakConceptsList = document.getElementById('weak-concepts-list');
+                let weakConceptHtml = "";
+                let maxMistakes = 0;
+                let worstMode = "";
+                
+                for (let m in modeMistakeCounts) {
+                    if (modeMistakeCounts[m] > maxMistakes) {
+                        maxMistakes = modeMistakeCounts[m];
+                        worstMode = m;
+                    }
+                }
+
+                if (maxMistakes > 2) {
+                    let issueText = "";
+                    if(worstMode === 'missing') issueText = "⚠️ Skip counting aur 'Missing Numbers' nikalne me dikkat ho rahi hai.";
+                    else if(worstMode === 'type') issueText = "⚠️ Bade numbers ki spelling padhkar keypad pe Type karne me galti ho rahi hai.";
+                    else if(worstMode === 'compare') issueText = "⚠️ Numbers ko Bada (>) ya Chhota (<) pehchanne me confusion hai.";
+                    else if(worstMode === 'write') issueText = "⚠️ Screen par numbers thik se draw karne me problem hai.";
+                    else if(worstMode === 'order') issueText = "⚠️ Numbers ko chote se bade kram (Order) me lagane me mistake ho rahi hai.";
+                    else if(worstMode === 'evenodd') issueText = "⚠️ Even (Sam) aur Odd (Visham) numbers pehchanne me dikkat hai.";
+                    else issueText = `⚠️ Sabse jyada galti '${worstMode}' game mode me hui hai.`;
+                    
+                    weakConceptHtml = `<strong>Analysis:</strong> ${issueText} <br><span class="text-xs text-red-500 block mt-1">(Is mode me ${maxMistakes} baar galti hui hai)</span>`;
+                } else {
+                    weakConceptHtml = `<span class="text-green-600 font-bold">✅ Excellent! Abhi tak kisi bhi concept me lagatar galti nahi mili.</span>`;
+                }
+                weakConceptsList.innerHTML = weakConceptHtml;
+
+                // Time Attack Stats
+                document.getElementById('stat-ta-games').innerText = this.user.taGames || 0;
+                document.getElementById('stat-ta-high').innerText = this.user.taHighScore || 0;
+                let avg = this.user.taGames > 0 ? Math.round(this.user.taTotalScore / this.user.taGames) : 0;
+                document.getElementById('stat-ta-avg').innerText = `${avg} points/game`;
+
+                const statsList = document.getElementById('detailed-stats-list');
+                statsList.innerHTML = '';
+                
+                const sortedStats = [...this.stats].sort((a, b) => b.wrongCount - a.wrongCount);
+                
+                if (sortedStats.length === 0) {
+                    statsList.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-400 italic">No activity yet. Great job!</td></tr>';
+                } else {
+                    sortedStats.forEach(s => {
+                        let isWeak = s.wrongCount > s.correctCount && s.wrongCount > 0;
+                        let tr = document.createElement('tr');
+                        tr.className = isWeak ? "bg-red-50" : "bg-white";
+                        tr.innerHTML = `
+                            <td class="p-3 font-bold text-slate-700">${s.number.toLocaleString('en-IN')}</td>
+                            <td class="p-3 text-center font-bold ${s.wrongCount > 0 ? 'text-red-500' : 'text-gray-300'}">${s.wrongCount}</td>
+                            <td class="p-3 text-center font-bold ${s.correctCount > 0 ? 'text-green-500' : 'text-gray-300'}">${s.correctCount}</td>
+                        `;
+                        statsList.appendChild(tr);
+                    });
+                }
+            },
+
+            generateReport() {
+                const date = new Date().toLocaleDateString('en-IN');
+                const sortedStats = [...this.stats].sort((a, b) => b.wrongCount - a.wrongCount);
+                const weakNumbers = sortedStats.filter(s => s.wrongCount > s.correctCount && s.wrongCount > 0).slice(0, 5);
+                
+                // Deep Analysis for PDF
+                let modeMistakeCounts = {};
+                this.stats.forEach(s => {
+                    if(s.modeErrors) {
+                        for (let m in s.modeErrors) {
+                            modeMistakeCounts[m] = (modeMistakeCounts[m] || 0) + s.modeErrors[m];
+                        }
+                    }
+                });
+                let maxMistakes = 0;
+                let worstMode = "";
+                for (let m in modeMistakeCounts) {
+                    if (modeMistakeCounts[m] > maxMistakes) { maxMistakes = modeMistakeCounts[m]; worstMode = m; }
+                }
+
+                let deepAnalysisHtml = "";
+                if(maxMistakes > 2) {
+                    let issueText = worstMode; // Default
+                    if(worstMode === 'missing') issueText = "Skip counting aur 'Missing Numbers' nikalna.";
+                    else if(worstMode === 'type') issueText = "Bade numbers ki spelling padhkar Type karna.";
+                    else if(worstMode === 'compare') issueText = "Numbers ko Bada (>) ya Chhota (<) compare karna.";
+                    else if(worstMode === 'write') issueText = "Screen par sahi se drawing/writing karna.";
+                    else if(worstMode === 'evenodd') issueText = "Even (Sam) aur Odd (Visham) me antar samajhna.";
+                    
+                    deepAnalysisHtml = `
+                    <div class="weak-points-box" style="margin-top: 10px; background: #fff1f2; border-color: #fda4af;">
+                        <h3>🧠 Deep Analysis: Main Kamzori</h3>
+                        <p style="color: #be123c;"><strong>Focus Area:</strong> Bacchi ko sabse jyada dikkat <u>${issueText}</u> me aa rahi hai. Is type ke sawalo me ${maxMistakes} galtiyaan hui hain.</p>
+                    </div>`;
+                }
+
+                let actionPlanHtml = "";
+                if (weakNumbers.length > 0) {
+                    actionPlanHtml = `
+                        <div class="weak-points-box">
+                            <h3>⚠️ Action Plan: In numbers pe focus karein</h3>
+                            <ul>
+                                ${weakNumbers.map(s => `<li><strong>${s.number.toLocaleString('en-IN')}</strong> - Missed ${s.wrongCount} times.</li>`).join('')}
+                            </ul>
+                            <p style="font-size: 14px; margin-top: 10px;"><em>Tip: Open the 'Study Room' in the app and have your child type these exact numbers!</em></p>
+                        </div>
+                    `;
+                } else {
+                    actionPlanHtml = `
+                        <div class="good-points-box">
+                            <h3>🌟 Excellent! No Weak Points Detected</h3>
+                            <p>Your child is performing perfectly on all practiced numbers so far!</p>
+                        </div>
+                    `;
+                }
+                
+                let avgTaScore = this.user.taGames > 0 ? Math.round(this.user.taTotalScore / this.user.taGames) : 0;
+
+                let html = `
+                <html>
+                <head>
+                    <title>Progress Report - Number Hero Academy</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #334155; padding: 40px; margin: 0 auto; max-width: 800px; }
+                        h1 { color: #2563eb; text-align: center; font-size: 32px; margin-bottom: 5px; }
+                        h2 { color: #64748b; text-align: center; font-size: 18px; font-weight: normal; margin-top: 0; }
+                        .summary-box { background: #eff6ff; border: 2px solid #bfdbfe; padding: 20px; border-radius: 12px; margin-bottom: 20px; font-size: 16px; }
+                        .summary-box p { margin: 8px 0; }
+                        .weak-points-box { background: #fef2f2; border: 2px solid #fecaca; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; }
+                        .weak-points-box h3 { color: #dc2626; margin-top: 0; }
+                        .weak-points-box ul { margin: 0; padding-left: 20px; color: #b91c1c; }
+                        .good-points-box { background: #f0fdf4; border: 2px solid #bbf7d0; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; }
+                        .good-points-box h3 { color: #16a34a; margin-top: 0; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: center; }
+                        th { background-color: #f8fafc; color: #475569; font-weight: bold; }
+                        td:first-child { text-align: left; font-weight: bold; }
+                        .weak-row { background-color: #fef2f2; }
+                        .weak-text { color: #ef4444; font-weight: bold; }
+                        .good-text { color: #10b981; font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Number Hero Academy 🦸‍♀️</h1>
+                    <h2>Student Progress & Analytics Report - ${date}</h2>
+                    
+                    <div class="summary-box">
+                        <p><strong>Current Level:</strong> ${this.user.maxLevel} out of 3000</p>
+                        <p><strong>Total Stars Earned:</strong> ⭐ ${this.user.stars}</p>
+                        <p><strong>Numbers Mastered:</strong> ${this.stats.filter(s => s.stage >= 5).length}</p>
+                        <hr style="border: 1px solid #bfdbfe; margin: 15px 0;">
+                        <h4 style="margin: 0 0 10px 0; color: #1e40af;">⏱️ Time Attack Analytics</h4>
+                        <p style="font-size: 14px;"><strong>Games Played:</strong> ${this.user.taGames || 0} | <strong>High Score:</strong> ${this.user.taHighScore || 0} | <strong>Average Speed:</strong> ${avgTaScore} points/game</p>
+                    </div>
+
+                    ${deepAnalysisHtml}
+                    ${actionPlanHtml}
+
+                    <h3>Detailed Mistake & Mastery Log</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Number</th>
+                                <th>Wrong Attempts ❌</th>
+                                <th>Correct Attempts ✅</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                if(sortedStats.length === 0) html += `<tr><td colspan="4">No practice data available yet.</td></tr>`;
+
+                sortedStats.forEach(s => {
+                    let isWeak = s.wrongCount > s.correctCount && s.wrongCount > 0;
+                    html += `
+                        <tr class="${isWeak ? 'weak-row' : ''}">
+                            <td>${s.number.toLocaleString('en-IN')}</td>
+                            <td class="${s.wrongCount > 0 ? 'weak-text' : ''}">${s.wrongCount}</td>
+                            <td class="${s.correctCount > 0 ? 'good-text' : ''}">${s.correctCount}</td>
+                            <td>${isWeak ? '<span class="weak-text">Needs Practice</span>' : '<span class="good-text">Good</span>'}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                        </tbody>
+                    </table>
+                    <p style="text-align:center; margin-top: 40px; font-size: 12px; color: #94a3b8;">Generated safely offline by Number Hero Academy Analytics</p>
+                </body>
+                </html>
+                `;
+
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                
+                iframe.contentDocument.write(html);
+                iframe.contentDocument.close();
+                
+                setTimeout(() => {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print(); 
+                    setTimeout(() => {
+                        document.body.removeChild(iframe);
+                    }, 2000);
+                }, 500);
+            },
+
+            saveSettings() {
+                this.user.voice = document.getElementById('setting-voice').checked;
+                this.user.dyslexia = document.getElementById('setting-dyslexia').checked;
+                this.toggleDyslexiaFont(this.user.dyslexia);
+                this.saveData();
+            },
+
+            toggleDyslexiaFont(enable) {
+                if(enable) {
+                    document.body.style.fontFamily = "'OpenDyslexic', 'Comic Sans MS', sans-serif";
+                    document.body.style.letterSpacing = "0.05em";
+                } else {
+                    document.body.style.fontFamily = "'Comic Sans MS', 'Chalkboard SE', sans-serif";
+                    document.body.style.letterSpacing = "normal";
+                }
+            },
+
+            confirmReset() {
+                document.getElementById('modal-confirm').classList.remove('hidden');
+                document.getElementById('modal-confirm').classList.add('flex');
+            },
+            closeConfirm() {
+                document.getElementById('modal-confirm').classList.add('hidden');
+                document.getElementById('modal-confirm').classList.remove('flex');
+            },
+            async executeReset() {
+                await this.db.clear('stats');
+                await this.db.clear('user');
+                location.reload();
+            },
+
+            renderRewards() {
+                const list = document.getElementById('achievements-list');
+                list.innerHTML = '';
+                
+                const badges = [
+                    { id: 'first', title: 'Level 10', req: 10, icon: '🌟' },
+                    { id: 'fifty', title: 'Level 50', req: 50, icon: '🚀' },
+                    { id: 'hundred', title: 'Level 100', req: 100, icon: '🎓' },
+                    { id: 'fivehudred', title: 'Level 500', req: 500, icon: '👑' },
+                    { id: 'thousand', title: 'Level 1000', req: 1000, icon: '💎' },
+                    { id: 'max', title: 'Math Genius!', req: 3000, icon: '🦸‍♀️' }
+                ];
+
+                badges.forEach(b => {
+                    const unlocked = this.user.maxLevel >= b.req;
+                    let el = document.createElement('div');
+                    el.className = `p-4 rounded-3xl flex flex-col items-center justify-center text-center ${unlocked ? 'bg-white shadow-md border-2 border-yellow-200 anim-bounce-in' : 'bg-yellow-100 opacity-50 grayscale'}`;
+                    el.innerHTML = `
+                        <div class="text-5xl mb-2 drop-shadow-sm">${b.icon}</div>
+                        <div class="font-bold text-yellow-800 text-lg">${b.title}</div>
+                    `;
+                    list.appendChild(el);
+                });
+            }
+        };
+
+        window.onload = () => App.init();
+
+    </script>
+</body>
+</html>
