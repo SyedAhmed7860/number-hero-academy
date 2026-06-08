@@ -99,7 +99,8 @@
                 Level <span id="home-level">1</span> / 3000
             </div>
 
-            <button onclick="App.startLevel(App.user.level)" class="btn w-full bg-green-500 text-white text-3xl font-bold py-5 rounded-3xl" id="btn-play">
+            <!-- BUG FIX: Uses App.user.maxLevel instead of App.user.level to ensure progression -->
+            <button onclick="App.startLevel(App.user.maxLevel)" class="btn w-full bg-green-500 text-white text-3xl font-bold py-5 rounded-3xl" id="btn-play">
                 PLAY LEVEL 1 🚀
             </button>
 
@@ -363,9 +364,10 @@
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-gray-50 sticky top-0 shadow-sm">
                         <tr>
-                            <th class="p-3 text-sm font-bold text-slate-600 border-b">Number</th>
-                            <th class="p-3 text-sm font-bold text-red-500 border-b text-center">Wrong ❌</th>
-                            <th class="p-3 text-sm font-bold text-green-500 border-b text-center">Right ✅</th>
+                            <th class="p-2 text-xs font-bold text-slate-600 border-b">Number</th>
+                            <th class="p-2 text-xs font-bold text-red-500 border-b text-center">❌</th>
+                            <th class="p-2 text-xs font-bold text-green-500 border-b text-center">✅</th>
+                            <th class="p-2 text-xs font-bold text-slate-600 border-b">Context</th>
                         </tr>
                     </thead>
                     <tbody id="detailed-stats-list" class="divide-y divide-gray-100"></tbody>
@@ -461,14 +463,13 @@
                 document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestUrl}">`);
 
                 const swCode = `
-                    const CACHE_NAME = 'number-hero-v9';
+                    const CACHE_NAME = 'number-hero-v10';
                     
                     self.addEventListener('install', event => {
                         event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll([location.href])));
                         self.skipWaiting();
                     });
                     
-                    // Activate handler to remove old caches ensuring seamless updates on GitHub
                     self.addEventListener('activate', event => {
                         event.waitUntil(
                             caches.keys().then(cacheNames => {
@@ -484,7 +485,6 @@
                         self.clients.claim();
                     });
 
-                    // Network First approach so github updates load instantly if online
                     self.addEventListener('fetch', event => {
                         event.respondWith(
                             fetch(event.request).catch(() => caches.match(event.request))
@@ -1608,7 +1608,6 @@
                 }
                 const userTotal = hit + falseAlarm;
                 
-                // Reduced minimum ink requirement to 400 for quick child writing!
                 if (userTotal < 400) { this.handleAnswer(false); return; }
                 const coverage = hit / ((hit + miss) || 1);
                 const precision = hit / ((hit + falseAlarm) || 1);
@@ -1704,16 +1703,33 @@
                 statsList.innerHTML = '';
                 const sortedStats = [...this.stats].sort((a, b) => b.wrongCount - a.wrongCount);
                 if (sortedStats.length === 0) {
-                    statsList.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-400 italic">No activity yet. Great job!</td></tr>';
+                    statsList.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400 italic">No activity yet. Great job!</td></tr>';
                 } else {
                     sortedStats.forEach(s => {
                         let isWeak = s.wrongCount > s.correctCount && s.wrongCount > 0;
+                        
+                        // Error Context Finder
+                        let errorContext = "-";
+                        if (s.wrongCount > 0 && s.modeErrors) {
+                            let modes = Object.keys(s.modeErrors).sort((a,b) => s.modeErrors[b] - s.modeErrors[a]);
+                            errorContext = modes[0]; 
+                            if(errorContext === 'missing') errorContext = "Sequence";
+                            else if(errorContext === 'type') errorContext = "Typing";
+                            else if(errorContext === 'compare') errorContext = "Compare";
+                            else if(errorContext === 'write') errorContext = "Tracing";
+                            else if(errorContext === 'order') errorContext = "Ordering";
+                            else if(errorContext === 'evenodd') errorContext = "Even/Odd";
+                            else if(errorContext === 'choice') errorContext = "Choices";
+                            else if(errorContext === 'count') errorContext = "Counting";
+                        }
+
                         let tr = document.createElement('tr');
                         tr.className = isWeak ? "bg-red-50" : "bg-white";
                         tr.innerHTML = `
-                            <td class="p-3 font-bold text-slate-700">${s.number.toLocaleString('en-IN')}</td>
-                            <td class="p-3 text-center font-bold ${s.wrongCount > 0 ? 'text-red-500' : 'text-gray-300'}">${s.wrongCount}</td>
-                            <td class="p-3 text-center font-bold ${s.correctCount > 0 ? 'text-green-500' : 'text-gray-300'}">${s.correctCount}</td>
+                            <td class="p-2 font-bold text-slate-700 text-sm">${s.number.toLocaleString('en-IN')}</td>
+                            <td class="p-2 text-center font-bold text-sm ${s.wrongCount > 0 ? 'text-red-500' : 'text-gray-300'}">${s.wrongCount}</td>
+                            <td class="p-2 text-center font-bold text-sm ${s.correctCount > 0 ? 'text-green-500' : 'text-gray-300'}">${s.correctCount}</td>
+                            <td class="p-2 text-xs text-slate-500">${errorContext}</td>
                         `;
                         statsList.appendChild(tr);
                     });
@@ -1746,8 +1762,20 @@
                 if (weakNumbers.length > 0) {
                     actionPlanHtml = `
                         <div class="weak-points-box">
-                            <h3>⚠️ Target Practice: Weak Numbers</h3>
-                            <ul>${weakNumbers.map(s => `<li><strong>${s.number.toLocaleString('en-IN')}</strong> - Wrong: ${s.wrongCount} times.</li>`).join('')}</ul>
+                            <h3>⚠️ Target Practice: Weak Numbers & Specific Reasons</h3>
+                            <ul>${weakNumbers.map(s => {
+                                let ctx = Object.keys(s.modeErrors || {}).sort((a,b) => s.modeErrors[b] - s.modeErrors[a])[0] || 'general';
+                                let reason = "";
+                                if(ctx === 'missing') reason = "Failed while calculating skip-counting sequences.";
+                                else if(ctx === 'type') reason = "Failed to type the correct digits from words.";
+                                else if(ctx === 'compare') reason = "Struggled to identify if it is greater or smaller.";
+                                else if(ctx === 'write') reason = "Failed tracing the shape correctly.";
+                                else if(ctx === 'order') reason = "Placed it in the wrong ascending order.";
+                                else if(ctx === 'evenodd') reason = "Failed to identify if it is Even or Odd.";
+                                else if(ctx === 'choice') reason = "Selected the wrong number from multiple choices.";
+                                else reason = "Needs general recognition practice.";
+                                return `<li><strong>${s.number.toLocaleString('en-IN')}</strong> - ${reason} (Wrong ${s.wrongCount} times)</li>`;
+                            }).join('')}</ul>
                         </div>
                     `;
                 } else {
@@ -1803,19 +1831,39 @@
                     <h3>Detailed Mistake Log</h3>
                     <table>
                         <thead>
-                            <tr><th>Number</th><th>Wrong Attempts ❌</th><th>Correct Attempts ✅</th><th>Status</th></tr>
+                            <tr><th>Number</th><th>Wrong ❌</th><th>Correct ✅</th><th>Question Type (Error Context)</th><th>Status</th></tr>
                         </thead>
                         <tbody>
                 `;
 
-                if(sortedStats.length === 0) html += `<tr><td colspan="4">No practice data available yet.</td></tr>`;
+                if(sortedStats.length === 0) html += `<tr><td colspan="5">No practice data available yet.</td></tr>`;
                 sortedStats.forEach(s => {
                     let isWeak = s.wrongCount > s.correctCount && s.wrongCount > 0;
+                    
+                    let errorContext = "N/A";
+                    if (s.wrongCount > 0 && s.modeErrors) {
+                        let modes = Object.keys(s.modeErrors).sort((a,b) => s.modeErrors[b] - s.modeErrors[a]);
+                        let worstModes = modes.slice(0, 2).map(m => {
+                            let ctx = m;
+                            if(m === 'missing') ctx = "Finding Missing Number";
+                            else if(m === 'type') ctx = "Typing Large Numbers";
+                            else if(m === 'compare') ctx = "Comparing Values (>, <)";
+                            else if(m === 'write') ctx = "Tracing the Number";
+                            else if(m === 'order') ctx = "Arranging in Order";
+                            else if(m === 'evenodd') ctx = "Identifying Even/Odd";
+                            else if(m === 'choice') ctx = "Multiple Choice Recognition";
+                            else if(m === 'count') ctx = "Counting Objects";
+                            return `${ctx} (${s.modeErrors[m]}x)`;
+                        });
+                        errorContext = worstModes.join('<br>');
+                    }
+
                     html += `
                         <tr class="${isWeak ? 'weak-row' : ''}">
                             <td>${s.number.toLocaleString('en-IN')}</td>
                             <td class="${s.wrongCount > 0 ? 'weak-text' : ''}">${s.wrongCount}</td>
                             <td class="${s.correctCount > 0 ? 'good-text' : ''}">${s.correctCount}</td>
+                            <td style="text-align: left; font-size: 14px; color: #64748b;">${errorContext}</td>
                             <td>${isWeak ? '<span class="weak-text">Needs Practice</span>' : '<span class="good-text">Good</span>'}</td>
                         </tr>
                     `;
